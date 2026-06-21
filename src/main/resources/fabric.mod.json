@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "playground",
+	"version": "${version}",
+	"name": "Playground",
+	"description": "Where we play!",
+	"authors": [
+		"Ninjaking312"
+	],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/playground/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"io.github.dennisochulor.playground.Playground"
+		],
+		"client": [
+			"io.github.dennisochulor.playground.client.PlaygroundClient"
+		],
+		"fabric-datagen": [
+			"io.github.dennisochulor.playground.client.PlaygroundDataGenerator"
+		]
+	},
+	"mixins": [
+		"playground.mixins.json",
+		{
+			"config": "playground.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=${loader_version}",
+		"minecraft": ">=${minecraft_version}",
+		"java": ">=25",
+		"fabric-api": ">=${fabric_version}"
+	}
+}
