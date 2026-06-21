@@ -14,6 +14,8 @@ public class Playground implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		LOGGER.info("Initialising Playground!");
+
+		PlaygroundBlocks.init();
 	}
 
 	public static Identifier id(String path) {
