@@ -1,5 +1,6 @@
 package io.github.dennisochulor.playground;
 
+import io.github.dennisochulor.playground.mirror.MirrorBlock;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 public class PlaygroundBlocks {
     public static final Block MIRROR = register(
             "mirror",
-            Block::new,
+            MirrorBlock::new,
             BlockBehaviour.Properties.of()
                     .sound(SoundType.GLASS)
                     .strength(0.3F)
