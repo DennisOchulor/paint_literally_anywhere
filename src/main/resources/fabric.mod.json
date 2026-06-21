@@ -7,7 +7,9 @@
 	"authors": [
 		"Ninjaking312"
 	],
-	"contact": {},
+	"contact": {
+		"sources": "https://github.com/DennisOchulor/mc-playground"
+	},
 	"license": "MIT",
 	"icon": "assets/playground/icon.png",
 	"environment": "*",
