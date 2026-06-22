@@ -21,9 +21,9 @@ public class MirrorBlockEntityRenderer implements BlockEntityRenderer<MirrorBloc
 
     @Override
     public void submit(MirrorBlockEntityRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
-        side(submitNodeCollector, poseStack, Color.RED.getRGB()); // Bottom
+        side(submitNodeCollector, poseStack, Color.RED.getRGB()); // -Y
         poseStack.translate(0, 1, 0);
-        side(submitNodeCollector, poseStack, Color.GREEN.getRGB()); // Top
+        side(submitNodeCollector, poseStack, Color.GREEN.getRGB()); // +Y
         poseStack.mulPose(Axis.XP.rotationDegrees(90));
         side(submitNodeCollector, poseStack, Color.BLUE.getRGB()); // -Z
         poseStack.translate(0, 1, 0);
