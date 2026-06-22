@@ -1,5 +1,6 @@
 package io.github.dennisochulor.playground;
 
+import io.github.dennisochulor.playground.mirror.MirrorMod;
 import net.fabricmc.api.ModInitializer;
 
 import net.minecraft.resources.Identifier;
@@ -15,7 +16,7 @@ public class Playground implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("Initialising Playground!");
 
-		PlaygroundBlocks.init();
+		MirrorMod.init();
 	}
 
 	public static Identifier id(String path) {

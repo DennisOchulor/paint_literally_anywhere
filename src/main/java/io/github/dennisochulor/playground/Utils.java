@@ -1,41 +1,24 @@
 package io.github.dennisochulor.playground;
 
-import io.github.dennisochulor.playground.mirror.MirrorBlock;
-import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
 import java.util.function.Function;
 
-public class PlaygroundBlocks {
-    public static final Block MIRROR = register(
-            "mirror",
-            MirrorBlock::new,
-            BlockBehaviour.Properties.of()
-                    .sound(SoundType.GLASS)
-                    .strength(0.3F)
-                    .isValidSpawn(Blocks::never)
-                    .isRedstoneConductor(Blocks::never)
-                    .isSuffocating(Blocks::never),
-            true
-    );
+public final class Utils {
+    private Utils() {}
 
-    public static void init() {
-        CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(tab -> {
-            tab.accept(MIRROR.asItem());
-        });
-    }
-
-    private static Block register(String name, Function<BlockBehaviour.Properties, Block> blockFactory, BlockBehaviour.Properties properties, boolean shouldRegisterItem) {
+    public static Block registerBlock(String name, Function<BlockBehaviour.Properties, Block> blockFactory, BlockBehaviour.Properties properties, boolean shouldRegisterItem) {
         // Create a registry key for the block
         ResourceKey<Block> blockKey = keyOfBlock(name);
         // Create the block instance
@@ -54,6 +37,17 @@ public class PlaygroundBlocks {
 
         return Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
     }
+
+    public static <T extends BlockEntity> BlockEntityType<T> registerBE(
+            String name,
+            FabricBlockEntityTypeBuilder.Factory<? extends T> entityFactory,
+            Block... blocks
+    ) {
+        Identifier id = Playground.id(name);
+        return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.<T>create(entityFactory, blocks).build());
+    }
+
+
 
     private static ResourceKey<Block> keyOfBlock(String name) {
         return ResourceKey.create(Registries.BLOCK, Playground.id(name));
