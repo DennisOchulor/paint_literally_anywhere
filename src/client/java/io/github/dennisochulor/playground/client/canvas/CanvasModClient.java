@@ -4,7 +4,6 @@ import io.github.dennisochulor.playground.canvas.CanvasBlockEntity;
 import io.github.dennisochulor.playground.canvas.CanvasMod;
 import io.github.dennisochulor.playground.canvas.ClientboundCanvasUpdatePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 

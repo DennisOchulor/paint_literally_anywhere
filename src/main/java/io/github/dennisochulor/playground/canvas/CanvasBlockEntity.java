@@ -13,6 +13,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import java.awt.*;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class CanvasBlockEntity extends BlockEntity {
     private final int[][] sides = new int[6][CanvasBlock.SIZE * CanvasBlock.SIZE];
@@ -59,11 +60,14 @@ public class CanvasBlockEntity extends BlockEntity {
 
     public void setPixel(Direction side, int index, int color) {
         sides[side.ordinal()][index] = color;
-        this.setChanged();
 
-        // incremental sync
-        ClientboundCanvasUpdatePacket packet = new ClientboundCanvasUpdatePacket(this.getBlockPos(), side, index, color);
-        PlayerLookup.tracking(this).forEach(player -> ServerPlayNetworking.send(player, packet));
+        if (!Objects.requireNonNull(level).isClientSide()) {
+            this.setChanged();
+
+            // incremental sync
+            ClientboundCanvasUpdatePacket packet = new ClientboundCanvasUpdatePacket(this.getBlockPos(), side, index, color);
+            PlayerLookup.tracking(this).forEach(player -> ServerPlayNetworking.send(player, packet));
+        }
     }
 
     public int getPixel(Direction side, int x, int y) {
