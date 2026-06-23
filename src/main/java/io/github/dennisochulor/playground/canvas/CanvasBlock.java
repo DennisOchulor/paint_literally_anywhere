@@ -1,6 +1,7 @@
 package io.github.dennisochulor.playground.canvas;
 
 import com.mojang.serialization.MapCodec;
+import io.github.dennisochulor.playground.Playground;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -50,7 +51,7 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
 
             int color = Color.BLACK.getRGB();
             canvas.setPixel(dir, pixel.getAsInt(), color);
-            //Playground.LOGGER.info("Set side {} at {} to {}", dir, pixel.getAsInt(), color);
+            Playground.LOGGER.info("Set side {} at {} to {}", dir, pixel.getAsInt(), color);
         }
 
         return InteractionResult.PASS;

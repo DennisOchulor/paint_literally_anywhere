@@ -40,11 +40,7 @@ public class CanvasBlockEntity extends BlockEntity {
         super.loadAdditional(input);
 
         for (Direction dir : Direction.values()) {
-            sides[dir.ordinal()] = input.getIntArray(dir.getName()).orElseGet(() -> {
-                int[] side = new int[CanvasBlock.SIZE];
-                Arrays.fill(side, CanvasBlock.DEFAULT_COLOR);
-                return side;
-            });
+            input.getIntArray(dir.getName()).ifPresent(side -> sides[dir.ordinal()] = side);
         }
     }
 
