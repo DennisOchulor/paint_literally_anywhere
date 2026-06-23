@@ -1,5 +1,6 @@
 package io.github.dennisochulor.playground;
 
+import io.github.dennisochulor.playground.canvas.CanvasMod;
 import io.github.dennisochulor.playground.mirror.MirrorMod;
 import net.fabricmc.api.ModInitializer;
 
@@ -17,6 +18,7 @@ public class Playground implements ModInitializer {
 		LOGGER.info("Initialising Playground!");
 
 		MirrorMod.init();
+		CanvasMod.init();
 	}
 
 	public static Identifier id(String path) {
