@@ -73,7 +73,7 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
         for (int row = 0; row < CanvasBlock.SIZE; row++) {
             for (int col = 0; col < CanvasBlock.SIZE; col++) {
                 // convert RGB to ARGB with max alpha
-                int color = ARGB.color(255, pixels[row * CanvasBlock.SIZE + col]);
+                int color = ARGB.opaque(pixels[row * CanvasBlock.SIZE + col]);
 
                 if (color == CanvasBlock.DEFAULT_COLOR) continue;
 
