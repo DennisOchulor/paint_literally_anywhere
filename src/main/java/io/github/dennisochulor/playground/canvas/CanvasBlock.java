@@ -8,7 +8,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.SelectableSlotContainer;
@@ -41,7 +40,7 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.PASS;
-        if (itemStack.getItem() != Items.STICK) return InteractionResult.PASS;
+        if (itemStack.getItem() != CanvasMod.PAINT_BRUSH) return InteractionResult.PASS;
 
         if (level.getBlockEntity(pos) instanceof CanvasBlockEntity canvas) {
             Direction dir = hitResult.getDirection();
@@ -49,8 +48,11 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
 
             if (pixel.isEmpty()) return InteractionResult.PASS;
 
-            int color = Color.BLACK.getRGB();
+            int color = itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, Color.BLACK.getRGB());
             canvas.setPixel(dir, pixel.getAsInt(), color);
+
+            itemStack.hurtAndBreak(1, player, hand);
+
             Playground.LOGGER.info("Set side {} at {} to {}", dir, pixel.getAsInt(), color);
 
             return InteractionResult.SUCCESS_SERVER;

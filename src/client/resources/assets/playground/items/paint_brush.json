@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "playground:item/paint_brush",
+    "tints": [
+      {
+        "type": "playground:tint/rgb_color",
+        "color": 0
+      }
+    ]
+  }
+}

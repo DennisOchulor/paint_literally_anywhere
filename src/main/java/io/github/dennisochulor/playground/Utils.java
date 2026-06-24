@@ -47,6 +47,16 @@ public final class Utils {
         return Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.<T>create(entityFactory, blocks).build());
     }
 
+    public static <T extends Item> T registerItem(String name, Function<Item.Properties, T> itemFactory, Item.Properties settings) {
+        // Create the item key.
+        ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, Playground.id(name));
+        // Create the item instance.
+        T item = itemFactory.apply(settings.setId(itemKey));
+        // Register the item.
+        Registry.register(BuiltInRegistries.ITEM, itemKey, item);
+        return item;
+    }
+
 
 
     private static ResourceKey<Block> keyOfBlock(String name) {

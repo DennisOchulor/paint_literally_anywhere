@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -71,7 +72,8 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
 
         for (int row = 0; row < CanvasBlock.SIZE; row++) {
             for (int col = 0; col < CanvasBlock.SIZE; col++) {
-                int color = pixels[row * CanvasBlock.SIZE + col];
+                // convert RGB to ARGB with max alpha
+                int color = ARGB.color(255, pixels[row * CanvasBlock.SIZE + col]);
 
                 if (color == CanvasBlock.DEFAULT_COLOR) continue;
 
