@@ -52,6 +52,8 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
             int color = Color.BLACK.getRGB();
             canvas.setPixel(dir, pixel.getAsInt(), color);
             Playground.LOGGER.info("Set side {} at {} to {}", dir, pixel.getAsInt(), color);
+
+            return InteractionResult.SUCCESS_SERVER;
         }
 
         return InteractionResult.PASS;
