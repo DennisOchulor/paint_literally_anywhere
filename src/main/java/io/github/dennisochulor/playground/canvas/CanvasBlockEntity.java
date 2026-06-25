@@ -10,19 +10,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Objects;
 
 public class CanvasBlockEntity extends BlockEntity {
-    private final int[][] sides = new int[6][CanvasBlock.SIZE * CanvasBlock.SIZE];
+    private final int[] @Nullable [] sides = new int[6][];
 
     public CanvasBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(CanvasMod.CANVAS_BLOCK_ENTITY, worldPosition, blockState);
-
-        for (int[] side : sides) {
-            Arrays.fill(side, CanvasBlock.DEFAULT_COLOR);
-        }
     }
 
     @Override
@@ -30,7 +27,9 @@ public class CanvasBlockEntity extends BlockEntity {
         super.saveAdditional(output);
 
         for (Direction dir : Direction.values()) {
-            output.putIntArray(dir.getName(), sides[dir.ordinal()]);
+            int[] sideArr = sides[dir.ordinal()];
+
+            if (sideArr != null) output.putIntArray(dir.getName(), sideArr);
         }
     }
 
@@ -54,7 +53,15 @@ public class CanvasBlockEntity extends BlockEntity {
     }
 
     public void setPixel(Direction side, int index, int color) {
-        sides[side.ordinal()][index] = color;
+        int[] sideArr = sides[side.ordinal()];
+
+        if (sideArr == null) {
+            sideArr = new int[CanvasBlock.SIZE * CanvasBlock.SIZE];
+            Arrays.fill(sideArr, CanvasBlock.DEFAULT_COLOR);
+            sides[side.ordinal()] = sideArr;
+        }
+
+        sideArr[index] = color;
 
         if (!Objects.requireNonNull(level).isClientSide()) {
             this.setChanged();
@@ -70,7 +77,14 @@ public class CanvasBlockEntity extends BlockEntity {
     }
 
     public int getPixel(Direction side, int index) {
-        return sides[side.ordinal()][index];
+        int[] sideArr = sides[side.ordinal()];
+
+        return sideArr != null ? sideArr[index] : CanvasBlock.DEFAULT_COLOR;
+    }
+
+    public int @Nullable [] copyPixels(Direction dir) {
+        int[] sideArr = sides[dir.ordinal()];
+        return sideArr != null ? Arrays.copyOf(sideArr, sideArr.length) : null;
     }
 
     public int index(int x, int y) {

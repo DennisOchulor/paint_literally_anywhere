@@ -19,6 +19,7 @@ import static net.minecraft.core.Direction.*;
 public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, CanvasRenderState> {
     private static final float STEP = 1.0F / CanvasBlock.SIZE;
 
+    @SuppressWarnings("unused")
     public CanvasRenderer(BlockEntityRendererProvider.Context context) {}
 
     @Override
@@ -31,11 +32,7 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
         for (Direction dir : Direction.values()) {
-            int[] stateArr = state.sides[dir.ordinal()];
-
-            for (int i = 0; i < stateArr.length; i++) {
-                stateArr[i] = blockEntity.getPixel(dir, i);
-            }
+            state.sides[dir.ordinal()] = blockEntity.copyPixels(dir);
         }
     }
 
@@ -61,7 +58,9 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
     }
 
     // row/colDir as in the direction of the elements in that row/col
-    private static void side(int[] pixels, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+    private static void side(int @Nullable [] pixels, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+        if (pixels == null) return;
+
         float xColStep = rowDir.getAxis() == Axis.X ? getStep(rowDir) : 0;
         float yColStep = rowDir.getAxis() == Axis.Y ? getStep(rowDir) : 0;
         float zColStep = rowDir.getAxis() == Axis.Z ? getStep(rowDir) : 0;
