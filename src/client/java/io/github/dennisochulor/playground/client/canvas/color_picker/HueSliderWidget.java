@@ -33,7 +33,7 @@ class HueSliderWidget extends AbstractWidget {
     @Override
     public void onClick(MouseButtonEvent event, boolean doubleClick) {
         super.onClick(event, doubleClick);
-        hue = (float) ((event.x() - gradientStartX()) / gradientWidth());
+        hue = (float) ((event.x() - gradientStartX()) / totalGradientWidth());
         hue = Mth.clamp(hue, 0 ,1);
     }
 
@@ -41,6 +41,11 @@ class HueSliderWidget extends AbstractWidget {
     protected void onDrag(MouseButtonEvent event, double dx, double dy) {
         super.onDrag(event, dx, dy);
         if (isMouseOver(event.x(), event.y())) onClick(event, false);
+    }
+
+    @Override
+    public int getWidth() {
+        return totalGradientWidth() + 2;
     }
 
     // Accounting for the outline
@@ -53,8 +58,16 @@ class HueSliderWidget extends AbstractWidget {
         return getY() + 1;
     }
 
-    private int gradientWidth() {
-        return width - 2;
+    private int totalGradientWidth() {
+        return singleGradientWidth() * numOfGradients();
+    }
+
+    private int singleGradientWidth() {
+        return Math.round((float) (width - 2) / numOfGradients());
+    }
+
+    private int numOfGradients() {
+        return RAINBOW.length - 1;
     }
 
     private int gradientHeight() {
@@ -67,23 +80,21 @@ class HueSliderWidget extends AbstractWidget {
         int y = getY();
 
         // Outline
-        graphics.outline(x, y, width, height, Color.WHITE.getRGB());
+        graphics.outline(x, y, totalGradientWidth() + 2, height, Color.WHITE.getRGB());
 
         // The hue rainbow!
-        int gradients = RAINBOW.length - 1;
-        int singleGradientWidth = Math.round((float) gradientWidth() / gradients);
-        for (int i = 0; i < gradients; i++) {
+        for (int i = 0; i < numOfGradients(); i++) {
             new GradientRectangleRenderState(graphics,
-                    gradientStartX() + (i * singleGradientWidth),
+                    gradientStartX() + (i * singleGradientWidth()),
                     gradientStartY(),
-                    gradientStartX() + ((i+1) * singleGradientWidth),
+                    gradientStartX() + ((i+1) * singleGradientWidth()),
                     gradientStartY() + gradientHeight(),
                     RAINBOW[i], RAINBOW[i+1], RAINBOW[i+1], RAINBOW[i]
             ).submit();
         }
 
         // Render selected hue target
-        int centerTargetX = (int) (gradientStartX() + (hue * gradientWidth()));
+        int centerTargetX = (int) (gradientStartX() + (hue * totalGradientWidth()));
         graphics.outline(centerTargetX - 3, y - 5, 6, height + 10, Color.WHITE.getRGB());
 
         if (isHovered()) graphics.requestCursor(CursorTypes.RESIZE_EW);
