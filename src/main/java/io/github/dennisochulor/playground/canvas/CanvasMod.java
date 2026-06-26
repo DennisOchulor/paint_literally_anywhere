@@ -40,7 +40,7 @@ public class CanvasMod {
     );
 
     public static final Item PAINT_BRUSH = Utils.registerItem("paint_brush", PaintBrushItem::new,
-            new Item.Properties().durability(238).component(RGB_COLOR, Color.BLACK.getRGB()));
+            new Item.Properties().durability(300).component(RGB_COLOR, Color.BLACK.getRGB()));
 
 
     public static void init() {
