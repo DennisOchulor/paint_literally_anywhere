@@ -16,8 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-import java.awt.*;
-import java.util.OptionalInt;
+import java.awt.Color;
 
 public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContainer {
     public static final int SIZE = 16;
@@ -44,16 +43,20 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
 
         if (level.getBlockEntity(pos) instanceof CanvasBlockEntity canvas) {
             Direction dir = hitResult.getDirection();
-            OptionalInt pixel = this.getHitSlot(hitResult, dir);
+            int pixelIndex = this.getHitSlot(hitResult, dir).orElse(-1);
 
-            if (pixel.isEmpty()) return InteractionResult.PASS;
+            if (pixelIndex == -1) {
+                Playground.LOGGER.warn("Attempt to paint non-existant pixel!\n{} / {} / {}", canvas, dir, hitResult);
+                return InteractionResult.PASS;
+            }
 
             int color = itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, Color.BLACK.getRGB());
-            canvas.setPixel(dir, pixel.getAsInt(), color);
 
+            if (color == canvas.getPixel(dir, pixelIndex)) return InteractionResult.PASS;
+
+            canvas.setPixel(dir, pixelIndex, color);
             itemStack.hurtAndBreak(1, player, hand);
-
-            Playground.LOGGER.info("Set side {} at {} to {}", dir, pixel.getAsInt(), color);
+            //Playground.LOGGER.info("Set side {} at {} to {}", dir, pixelIndex, color);
 
             return InteractionResult.CONSUME;
         }
