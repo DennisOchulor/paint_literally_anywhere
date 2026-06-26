@@ -4,10 +4,12 @@ import io.github.dennisochulor.playground.Playground;
 import io.github.dennisochulor.playground.Utils;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -16,7 +18,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import java.awt.*;
+import java.awt.Color;
 
 public class CanvasMod {
     public static final Block CANVAS = Utils.registerBlock(
@@ -51,5 +53,17 @@ public class CanvasMod {
         });
 
         PayloadTypeRegistry.clientboundPlay().register(ClientboundCanvasUpdatePacket.TYPE, ClientboundCanvasUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundPaintbrushUpdatePacket.TYPE, ServerboundPaintbrushUpdatePacket.STREAM_CODEC);
+
+        ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintbrushUpdatePacket.TYPE, (payload, context) -> {
+            ServerPlayer player = context.player();
+            if (!player.isCreative()) return;
+            if (player.getMainHandItem().getItem() != PAINT_BRUSH) {
+                Playground.LOGGER.warn("Received paintbrush update packet from player {} not holding paintbrush in main hand!", player);
+                return;
+            }
+
+            player.getMainHandItem().set(RGB_COLOR, payload.rgb());
+        });
     }
 }
