@@ -28,7 +28,7 @@ public class CanvasMod {
             CanvasBlock::new,
             BlockBehaviour.Properties.of()
                     .sound(SoundType.STONE)
-                    .strength(1),
+                    .strength(2),
             true
     );
 
