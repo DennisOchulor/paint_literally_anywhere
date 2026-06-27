@@ -14,6 +14,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -64,13 +65,18 @@ public class CanvasMod {
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintbrushUpdatePacket.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
+            ItemStack itemStack = player.getMainHandItem();
+
             if (!player.isCreative()) return;
-            if (player.getMainHandItem().getItem() != PAINT_BRUSH) {
+            if (itemStack.getItem() != PAINT_BRUSH) {
                 Playground.LOGGER.warn("Received paintbrush update packet from player {} not holding paintbrush in main hand!", player);
                 return;
             }
 
-            player.getMainHandItem().set(RGB_COLOR, payload.rgb());
+            itemStack.set(RGB_COLOR, payload.rgb());
+
+            if (payload.emissive()) itemStack.set(EMISSIVE, Unit.INSTANCE);
+            else itemStack.remove(EMISSIVE);
         });
     }
 }

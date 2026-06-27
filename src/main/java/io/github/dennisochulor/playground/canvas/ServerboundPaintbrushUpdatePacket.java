@@ -6,10 +6,12 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public record ServerboundPaintbrushUpdatePacket(int rgb) implements CustomPacketPayload {
+public record ServerboundPaintbrushUpdatePacket(int rgb, boolean emissive) implements CustomPacketPayload {
     public static final Type<ServerboundPaintbrushUpdatePacket> TYPE = new Type<>(Playground.id("canvas/update_paintbrush"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ServerboundPaintbrushUpdatePacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.INT, ServerboundPaintbrushUpdatePacket::rgb, ServerboundPaintbrushUpdatePacket::new
+            ByteBufCodecs.INT, ServerboundPaintbrushUpdatePacket::rgb,
+            ByteBufCodecs.BOOL, ServerboundPaintbrushUpdatePacket::emissive,
+            ServerboundPaintbrushUpdatePacket::new
     );
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.awt.Color;
@@ -28,11 +29,15 @@ public class CanvasModClient {
         });
 
         ItemEvents.USE.register((level, player, _) -> {
-            if (player.getMainHandItem().getItem() != CanvasMod.PAINT_BRUSH) return InteractionResult.PASS;
+            ItemStack itemStack = player.getMainHandItem();
+
+            if (itemStack.getItem() != CanvasMod.PAINT_BRUSH) return InteractionResult.PASS;
             if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return InteractionResult.PASS;
 
-            int rgb = player.getMainHandItem().getOrDefault(CanvasMod.RGB_COLOR, Color.YELLOW.getRGB());
-            Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(rgb)));
+            int rgb = itemStack.getOrDefault(CanvasMod.RGB_COLOR, Color.YELLOW.getRGB());
+            boolean emissive = itemStack.has(CanvasMod.EMISSIVE);
+
+            Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(rgb), emissive));
             return InteractionResult.CONSUME;
         });
     }
