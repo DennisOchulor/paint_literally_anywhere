@@ -23,7 +23,7 @@ public class CanvasModClient {
             BlockEntity blockEntity = Objects.requireNonNull(context.client().level).getBlockEntity(packet.pos());
 
             if (blockEntity instanceof CanvasBlockEntity canvas) {
-                canvas.setPixel(packet.side(), packet.index(), packet.color());
+                canvas.setPixel(packet.side(), packet.index(), packet.color(), packet.emissive());
             }
         });
 

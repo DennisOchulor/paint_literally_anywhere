@@ -15,12 +15,15 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
+
+import java.util.BitSet;
 
 import static net.minecraft.core.Direction.*;
 
@@ -61,7 +64,8 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
             state.perFaceLight[dir.ordinal()] = sideLight;
 
             if (sideLight != 0) { // if 0, then face is covered anyway, so avoid unnecessary copying
-                state.sides[dir.ordinal()] = blockEntity.copyPixels(dir);
+                state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
+                state.emissiveSides[dir.ordinal()] = blockEntity.copyEmissive(dir);
             }
         }
     }
@@ -89,6 +93,8 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
     private static void side(CanvasRenderState state, Direction side, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
         int[] pixels = state.sides[side.ordinal()];
         int lightCoords = state.perFaceLight[side.ordinal()];
+        BitSet emissiveBitSet = state.emissiveSides[side.ordinal()];
+
         if (pixels == null || lightCoords == 0) return;
 
         float xColStep = rowDir.getAxis() == Axis.X ? getStep(rowDir) : 0;
@@ -101,15 +107,16 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
 
         for (int row = 0; row < CanvasBlock.SIZE; row++) {
             for (int col = 0; col < CanvasBlock.SIZE; col++) {
-                // convert RGB to ARGB with max alpha
-                int color = ARGB.opaque(pixels[row * CanvasBlock.SIZE + col]);
+                int index = row * CanvasBlock.SIZE + col;
+                int color = ARGB.opaque(pixels[index]); // convert RGB to ARGB with max alpha
+                boolean emissive = emissiveBitSet != null && emissiveBitSet.get(index);
 
-                if (color == CanvasBlock.DEFAULT_COLOR) continue;
+                if (color == CanvasBlock.DEFAULT_COLOR && !emissive) continue;
 
                 float xBase = xRowStep != 0 ? row * xRowStep : col * xColStep;
                 float yBase = yRowStep != 0 ? row * yRowStep : col * yColStep;
                 float zBase = zRowStep != 0 ? row * zRowStep : col * zColStep;
-                submitNodeCollector.submitCustomGeometry(poseStack, FILLED_BOX_TYPE, (pose, buffer) -> {
+                submitNodeCollector.submitCustomGeometry(poseStack, emissive ? RenderTypes.debugFilledBox() : FILLED_BOX_TYPE, (pose, buffer) -> {
                     // base
                     buffer.addVertex(pose, xBase, yBase, zBase)
                             .setColor(color).setLight(lightCoords).setUv(0, 1).setLineWidth(1);

@@ -11,6 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.Unit;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -37,6 +38,12 @@ public class CanvasMod {
             BuiltInRegistries.DATA_COMPONENT_TYPE,
             Playground.id("component/rgb_color"),
             DataComponentType.<Integer>builder().persistent(ExtraCodecs.RGB_COLOR_CODEC).networkSynchronized(ByteBufCodecs.RGB_COLOR).build()
+    );
+
+    public static final DataComponentType<Unit> EMISSIVE = Registry.register(
+            BuiltInRegistries.DATA_COMPONENT_TYPE,
+            Playground.id("component/emissive"),
+            DataComponentType.<Unit>builder().persistent(Unit.CODEC).networkSynchronized(Unit.STREAM_CODEC).build()
     );
 
     public static final Item PAINT_BRUSH = Utils.registerItem("paint_brush", PaintBrushItem::new,

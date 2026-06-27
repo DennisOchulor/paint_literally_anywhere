@@ -36,8 +36,6 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
         return new CanvasBlockEntity(worldPosition, blockState);
     }
 
-
-
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.PASS;
@@ -53,12 +51,15 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
             }
 
             int color = itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, Color.BLACK.getRGB());
+            boolean emissive = itemStack.has(CanvasMod.EMISSIVE);
 
-            if (color == canvas.getPixel(dir, pixelIndex)) return InteractionResult.PASS;
+            if (color == canvas.getPixelColor(dir, pixelIndex) && emissive == canvas.isEmissive(dir, pixelIndex)) {
+                return InteractionResult.PASS;
+            }
 
-            canvas.setPixel(dir, pixelIndex, color);
+            canvas.setPixel(dir, pixelIndex, color, emissive);
             itemStack.hurtAndBreak(1, player, hand);
-            //Playground.LOGGER.info("Set side {} at {} to {}", dir, pixelIndex, color);
+            Playground.LOGGER.info("Set side {} at {} to {} {}", dir, pixelIndex, color, emissive);
 
             return InteractionResult.CONSUME;
         }
