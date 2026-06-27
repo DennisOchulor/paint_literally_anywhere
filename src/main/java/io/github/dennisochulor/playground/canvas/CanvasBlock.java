@@ -36,6 +36,8 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
         return new CanvasBlockEntity(worldPosition, blockState);
     }
 
+
+
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (level.isClientSide()) return InteractionResult.PASS;

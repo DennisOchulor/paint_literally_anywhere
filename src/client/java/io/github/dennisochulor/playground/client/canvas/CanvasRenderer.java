@@ -1,16 +1,24 @@
 package io.github.dennisochulor.playground.client.canvas;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.github.dennisochulor.playground.Playground;
 import io.github.dennisochulor.playground.canvas.CanvasBlock;
 import io.github.dennisochulor.playground.canvas.CanvasBlockEntity;
+import net.minecraft.client.renderer.BindGroupLayouts;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.rendertype.LayeringTransform;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -18,6 +26,19 @@ import static net.minecraft.core.Direction.*;
 
 public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, CanvasRenderState> {
     private static final float STEP = 1.0F / CanvasBlock.SIZE;
+
+    // vertex shader copied from position_color.vsh and text_background.vsh
+    private static final RenderPipeline FILLED_BOX_PIPELINE = RenderPipelines.register(
+            RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET).withLocation(Playground.id("pipeline/filled_box"))
+                    .withVertexShader(Playground.id("core/position_color_lightmap"))
+                    .withBindGroupLayout(BindGroupLayouts.SAMPLER2)
+                    //.withCull(true) // causes top/bottom to not render for some reason...
+                    .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_LIGHTMAP)
+                    .build()
+    );
+
+    private static final RenderType FILLED_BOX_TYPE = RenderType.create("canvas_filled_box",
+            RenderSetup.builder(FILLED_BOX_PIPELINE).sortOnUpload().useLightmap().setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup());
 
     @SuppressWarnings("unused")
     public CanvasRenderer(BlockEntityRendererProvider.Context context) {}
@@ -31,35 +52,44 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
     public void extractRenderState(CanvasBlockEntity blockEntity, CanvasRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
+        if (blockEntity.getLevel() == null) return;
+
         for (Direction dir : Direction.values()) {
-            state.sides[dir.ordinal()] = blockEntity.copyPixels(dir);
+            int sideLight;
+            sideLight = LightCoordsUtil.getLightCoords(LightCoordsUtil.BrightnessGetter.DEFAULT,
+                    blockEntity.getLevel(), blockEntity.getBlockState(), blockEntity.getBlockPos().relative(dir));
+            state.perFaceLight[dir.ordinal()] = sideLight;
+
+            if (sideLight != 0) { // if 0, then face is covered anyway, so avoid unnecessary copying
+                state.sides[dir.ordinal()] = blockEntity.copyPixels(dir);
+            }
         }
     }
 
     @Override
     public void submit(CanvasRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState camera) {
-        int[][] sides = state.sides;
-
         poseStack.translate(0, 0, 1);
-        side(sides[DOWN.ordinal()], EAST, NORTH, poseStack, submitNodeCollector);
+        side(state, DOWN, EAST, NORTH, poseStack, submitNodeCollector);
 
         poseStack.translate(0, 1, 0);
-        side(sides[UP.ordinal()], EAST, NORTH, poseStack, submitNodeCollector);
-        side(sides[SOUTH.ordinal()], EAST, DOWN, poseStack, submitNodeCollector);
+        side(state, UP, EAST, NORTH, poseStack, submitNodeCollector);
+        side(state, SOUTH, EAST, DOWN, poseStack, submitNodeCollector);
 
         poseStack.translate(1, 0, 0);
-        side(sides[EAST.ordinal()], NORTH, DOWN, poseStack, submitNodeCollector);
+        side(state, EAST, NORTH, DOWN, poseStack, submitNodeCollector);
 
         poseStack.translate(0, 0, -1);
-        side(sides[NORTH.ordinal()], WEST, DOWN, poseStack, submitNodeCollector);
+        side(state, NORTH, WEST, DOWN, poseStack, submitNodeCollector);
 
         poseStack.translate(-1, 0, 0);
-        side(sides[WEST.ordinal()], SOUTH, DOWN, poseStack, submitNodeCollector);
+        side(state, WEST, SOUTH, DOWN, poseStack, submitNodeCollector);
     }
 
     // row/colDir as in the direction of the elements in that row/col
-    private static void side(int @Nullable [] pixels, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
-        if (pixels == null) return;
+    private static void side(CanvasRenderState state, Direction side, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+        int[] pixels = state.sides[side.ordinal()];
+        int lightCoords = state.perFaceLight[side.ordinal()];
+        if (pixels == null || lightCoords == 0) return;
 
         float xColStep = rowDir.getAxis() == Axis.X ? getStep(rowDir) : 0;
         float yColStep = rowDir.getAxis() == Axis.Y ? getStep(rowDir) : 0;
@@ -79,18 +109,22 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
                 float xBase = xRowStep != 0 ? row * xRowStep : col * xColStep;
                 float yBase = yRowStep != 0 ? row * yRowStep : col * yColStep;
                 float zBase = zRowStep != 0 ? row * zRowStep : col * zColStep;
-                submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.debugFilledBox(), (pose, buffer) -> {
+                submitNodeCollector.submitCustomGeometry(poseStack, FILLED_BOX_TYPE, (pose, buffer) -> {
                     // base
-                    buffer.addVertex(pose, xBase, yBase, zBase).setColor(color).setUv(0, 0).setLineWidth(1);
+                    buffer.addVertex(pose, xBase, yBase, zBase)
+                            .setColor(color).setLight(lightCoords).setUv(0, 1).setLineWidth(1);
 
                     // step row
-                    buffer.addVertex(pose, xBase + xRowStep, yBase + yRowStep, zBase + zRowStep).setColor(color).setUv(0, 0).setLineWidth(1);
+                    buffer.addVertex(pose, xBase + xRowStep, yBase + yRowStep, zBase + zRowStep)
+                            .setColor(color).setLight(lightCoords).setUv(1, 1).setLineWidth(1);
 
                     // step row, step col
-                    buffer.addVertex(pose, xBase + xRowStep + xColStep, yBase + yRowStep + yColStep, zBase + zRowStep + zColStep).setColor(color).setUv(0, 0).setLineWidth(1);
+                    buffer.addVertex(pose, xBase + xRowStep + xColStep, yBase + yRowStep + yColStep, zBase + zRowStep + zColStep)
+                            .setColor(color).setLight(lightCoords).setUv(1, 0).setLineWidth(1);
 
                     // step col
-                    buffer.addVertex(pose, xBase + xColStep, yBase + yColStep, zBase + zColStep).setColor(color).setUv(0, 0).setLineWidth(1);
+                    buffer.addVertex(pose, xBase + xColStep, yBase + yColStep, zBase + zColStep)
+                            .setColor(color).setLight(lightCoords).setUv(0, 0).setLineWidth(1);
                 });
             }
         }
