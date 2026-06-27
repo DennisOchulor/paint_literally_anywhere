@@ -14,6 +14,9 @@ public class PaintBrushItem extends Item {
     @Override
     public Component getName(ItemStack itemStack) {
         int rgb = itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, Color.WHITE.getRGB());
-        return Component.translatable("item.playground.paint_brush").withColor(rgb);
+        boolean emissive = itemStack.has(CanvasMod.EMISSIVE);
+        return Component.translatable(
+                emissive ? "item.playground.paint_brush.emissive" : "item.playground.paint_brush")
+                .withColor(rgb);
     }
 }
