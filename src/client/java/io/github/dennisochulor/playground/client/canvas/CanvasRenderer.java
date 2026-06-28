@@ -63,10 +63,8 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
                     blockEntity.getLevel(), blockEntity.getBlockState(), blockEntity.getBlockPos().relative(dir));
             state.perFaceLight[dir.ordinal()] = sideLight;
 
-            if (sideLight != 0) { // if 0, then face is covered anyway, so avoid unnecessary copying
-                state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
-                state.emissiveSides[dir.ordinal()] = blockEntity.copyEmissive(dir);
-            }
+            state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
+            state.emissiveSides[dir.ordinal()] = blockEntity.copyEmissive(dir);
         }
     }
 
@@ -95,7 +93,7 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
         int lightCoords = state.perFaceLight[side.ordinal()];
         BitSet emissiveBitSet = state.emissiveSides[side.ordinal()];
 
-        if (pixels == null || lightCoords == 0) return;
+        if (pixels == null) return;
 
         float xColStep = rowDir.getAxis() == Axis.X ? getStep(rowDir) : 0;
         float yColStep = rowDir.getAxis() == Axis.Y ? getStep(rowDir) : 0;
