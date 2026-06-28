@@ -20,8 +20,6 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
-import java.awt.Color;
-
 public class CanvasMod {
     public static final Block CANVAS = Utils.registerBlock(
             "canvas",
@@ -48,7 +46,8 @@ public class CanvasMod {
     );
 
     public static final Item PAINT_BRUSH = Utils.registerItem("paint_brush", PaintBrushItem::new,
-            new Item.Properties().durability(300).component(RGB_COLOR, Color.BLACK.getRGB()));
+            new Item.Properties().durability(300)
+    );
 
 
     public static void init() {

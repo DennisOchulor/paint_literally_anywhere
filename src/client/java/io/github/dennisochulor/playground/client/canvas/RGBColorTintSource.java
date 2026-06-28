@@ -12,17 +12,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-public record RGBColorTintSource(int color) implements ItemTintSource {
+public record RGBColorTintSource(int defaultColor) implements ItemTintSource {
     public static final Identifier ID = Playground.id("tint/rgb_color");
 
     public static final MapCodec<RGBColorTintSource> MAP_CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
-                    ExtraCodecs.RGB_COLOR_CODEC.fieldOf("color").forGetter(RGBColorTintSource::color)).apply(instance, RGBColorTintSource::new)
+                    ExtraCodecs.RGB_COLOR_CODEC.fieldOf("defaultColor").forGetter(RGBColorTintSource::defaultColor)).apply(instance, RGBColorTintSource::new)
     );
 
     @Override
     public int calculate(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity owner) {
-        return itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, color);
+        Integer rgb = itemStack.getComponents().get(CanvasMod.RGB_COLOR);
+        return rgb != null ? rgb : defaultColor;
     }
 
     @Override

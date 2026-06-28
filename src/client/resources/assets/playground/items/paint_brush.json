@@ -1,11 +1,47 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "playground:item/paint_brush",
-    "tints": [
+    "type": "minecraft:composite",
+    "models": [
       {
-        "type": "playground:tint/rgb_color",
-        "color": 0
+        "type": "minecraft:condition",
+        "property": "minecraft:has_component",
+        "component": "playground:component/emissive",
+        "on_true": {
+          "type": "minecraft:model",
+          "model": "playground:item/paint_brush_stalk_emissive",
+          "tints": [
+            {
+              "type": "playground:tint/rgb_color",
+              "defaultColor": -2172773
+            }
+          ]
+        },
+
+        "on_false": {
+          "type": "minecraft:model",
+          "model": "playground:item/paint_brush_stalk"
+        }
+      },
+
+
+      {
+        "type": "minecraft:condition",
+        "property": "minecraft:has_component",
+        "component": "playground:component/rgb_color",
+        "on_true": {
+          "type": "minecraft:model",
+          "model": "playground:item/paint_brush_paint",
+          "tints": [
+            {
+              "type": "playground:tint/rgb_color",
+              "defaultColor": 0
+            }
+          ]
+        },
+
+        "on_false": {
+          "type": "minecraft:empty"
+        }
       }
     ]
   }

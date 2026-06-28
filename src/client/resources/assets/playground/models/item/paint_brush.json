@@ -1,7 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "playground:item/paint_brush_tip",
-    "layer1": "playground:item/paint_brush_stalk"
-  }
-}

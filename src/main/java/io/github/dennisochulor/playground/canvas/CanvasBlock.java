@@ -50,8 +50,12 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
                 return InteractionResult.PASS;
             }
 
-            int color = itemStack.getComponents().getOrDefault(CanvasMod.RGB_COLOR, Color.BLACK.getRGB());
+            Integer color = itemStack.getComponents().get(CanvasMod.RGB_COLOR);
             boolean emissive = itemStack.has(CanvasMod.EMISSIVE);
+
+            if (color == null) {
+                return InteractionResult.PASS;
+            }
 
             if (color == canvas.getPixelColor(dir, pixelIndex) && emissive == canvas.isEmissive(dir, pixelIndex)) {
                 return InteractionResult.PASS;
