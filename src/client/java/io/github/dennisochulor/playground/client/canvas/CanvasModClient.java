@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemTintSources;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +20,7 @@ public class CanvasModClient {
     public static void init() {
         BlockEntityRenderers.register(CanvasMod.CANVAS_BLOCK_ENTITY, CanvasRenderer::new);
         ItemTintSources.ID_MAPPER.put(RGBColorTintSource.ID, RGBColorTintSource.MAP_CODEC);
+        MenuScreens.register(CanvasMod.PALETTE_MENU, PaletteScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundCanvasUpdatePacket.TYPE, (packet, context) -> {
             BlockEntity blockEntity = Objects.requireNonNull(context.client().level).getBlockEntity(packet.pos());

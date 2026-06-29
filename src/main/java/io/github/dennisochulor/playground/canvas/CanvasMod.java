@@ -12,6 +12,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Unit;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +35,16 @@ public class CanvasMod {
     public static final BlockEntityType<CanvasBlockEntity> CANVAS_BLOCK_ENTITY =
             Utils.registerBE("canvas", CanvasBlockEntity::new, CANVAS);
 
+    public static final Block PALETTE = Utils.registerBlock(
+            "palette",
+            PaletteBlock::new,
+            BlockBehaviour.Properties.of(),
+            true
+    );
+
+    public static final MenuType<PaletteMenu> PALETTE_MENU =
+            Registry.register(BuiltInRegistries.MENU, Playground.id("menu/palette"), new MenuType<>(PaletteMenu::new, FeatureFlagSet.of()));
+
     public static final DataComponentType<Integer> RGB_COLOR = Registry.register(
             BuiltInRegistries.DATA_COMPONENT_TYPE,
             Playground.id("component/rgb_color"),
@@ -53,6 +65,7 @@ public class CanvasMod {
     public static void init() {
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(tab -> {
             tab.accept(CANVAS.asItem());
+            tab.accept(PALETTE.asItem());
         });
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(tab -> {
@@ -61,6 +74,7 @@ public class CanvasMod {
 
         PayloadTypeRegistry.clientboundPlay().register(ClientboundCanvasUpdatePacket.TYPE, ClientboundCanvasUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundPaintbrushUpdatePacket.TYPE, ServerboundPaintbrushUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundPaletteMenuUpdatePacket.TYPE, ServerboundPaletteMenuUpdatePacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintbrushUpdatePacket.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
@@ -77,5 +91,11 @@ public class CanvasMod {
             if (payload.emissive()) itemStack.set(EMISSIVE, Unit.INSTANCE);
             else itemStack.remove(EMISSIVE);
         });
+
+        ServerPlayNetworking.registerGlobalReceiver(ServerboundPaletteMenuUpdatePacket.TYPE, ((payload, context) -> {
+            if (context.player().containerMenu instanceof PaletteMenu menu) {
+                menu.setRequestedColor(payload.rgb());
+            }
+        }));
     }
 }

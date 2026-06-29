@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "conditions": [],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "playground:palette"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ]
+}
