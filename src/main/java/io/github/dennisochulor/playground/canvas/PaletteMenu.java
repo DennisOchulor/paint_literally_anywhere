@@ -18,23 +18,23 @@ public class PaletteMenu extends ItemCombinerMenu {
     public static final Color STARTING_COLOR = Color.YELLOW;
 
     public static final int INVENTORY_START_X = 8;
-    public static final int INVENTORY_START_Y = 160; // PaletteScreen needs this
+    public static final int INVENTORY_START_Y = 160;
 
-    private static final int INPUT_SLOT_START_X = INVENTORY_START_X + AbstractContainerMenu.SLOT_SIZE;
-    private static final int INPUT_SLOT_START_Y = 123;
-    public static final int INPUT_SLOT_INDEX = 0; // PaletteScreen needs this
+    public static final int INPUT_SLOT_START_X = INVENTORY_START_X + AbstractContainerMenu.SLOT_SIZE;
+    public static final int INPUT_SLOT_START_Y = 123;
+    public static final int INPUT_SLOT_INDEX = 0;
 
-    private static final int RESULT_SLOT_START_X = INVENTORY_START_X + (AbstractContainerMenu.SLOT_SIZE * 7);
-    private static final int RESULT_SLOT_START_Y = INPUT_SLOT_START_Y;
-    private static final int RESULT_SLOT_INDEX = 1;
+    public static final int RESULT_SLOT_START_X = INVENTORY_START_X + (AbstractContainerMenu.SLOT_SIZE * 7);
+    public static final int RESULT_SLOT_START_Y = INPUT_SLOT_START_Y;
+    public static final int RESULT_SLOT_INDEX = 1;
 
-    private static final int FIRST_DYE_SLOT_START_X = (INPUT_SLOT_START_X + RESULT_SLOT_START_X) / 2 - (AbstractContainerMenu.SLOT_SIZE / 2);
-    private static final int FIRST_DYE_SLOT_START_Y = INPUT_SLOT_START_Y + 15;
-    private static final int FIRST_DYE_SLOT_INDEX = 2;
+    public static final int FIRST_DYE_SLOT_START_X = (INPUT_SLOT_START_X + RESULT_SLOT_START_X) / 2 - (AbstractContainerMenu.SLOT_SIZE / 2);
+    public static final int FIRST_DYE_SLOT_START_Y = INPUT_SLOT_START_Y + 15;
+    public static final int FIRST_DYE_SLOT_INDEX = 2;
 
-    private static final int SECOND_DYE_SLOT_START_X = FIRST_DYE_SLOT_START_X + AbstractContainerMenu.SLOT_SIZE;
-    private static final int SECOND_DYE_SLOT_START_Y = FIRST_DYE_SLOT_START_Y;
-    private static final int SECOND_DYE_SLOT_INDEX = 3;
+    public static final int SECOND_DYE_SLOT_START_X = FIRST_DYE_SLOT_START_X + AbstractContainerMenu.SLOT_SIZE;
+    public static final int SECOND_DYE_SLOT_START_Y = FIRST_DYE_SLOT_START_Y;
+    public static final int SECOND_DYE_SLOT_INDEX = 3;
 
     private static final Map<Color, Item> COLOR_TO_DYE_MAP;
 
@@ -77,10 +77,20 @@ public class PaletteMenu extends ItemCombinerMenu {
             public boolean mayPickup(Player player) {
                 return false;
             }
+
+            @Override
+            public boolean mayPlace(ItemStack itemStack) {
+                return false;
+            }
         });
         this.addSlot(new Slot(dyeSlots, SECOND_DYE_SLOT_INDEX, SECOND_DYE_SLOT_START_X, SECOND_DYE_SLOT_START_Y) {
             @Override
             public boolean mayPickup(Player player) {
+                return false;
+            }
+
+            @Override
+            public boolean mayPlace(ItemStack itemStack) {
                 return false;
             }
         });
@@ -93,8 +103,8 @@ public class PaletteMenu extends ItemCombinerMenu {
                 .build();
     }
 
-    public void setRequestedColor(int requestedColor) {
-        this.requestedColor = new Color(requestedColor);
+    public void setRequestedColor(Color requestedColor) {
+        this.requestedColor = requestedColor;
         access.evaluate((level, _) -> {
             if (!level.isClientSide()) {
                 createResult();
@@ -105,6 +115,10 @@ public class PaletteMenu extends ItemCombinerMenu {
 
     public Color getRequestedColor() {
         return requestedColor;
+    }
+
+    public Container getDyeSlots() {
+        return dyeSlots;
     }
 
     private void updateDyes() {
@@ -136,13 +150,30 @@ public class PaletteMenu extends ItemCombinerMenu {
 
     @Override
     protected void onTake(Player player, ItemStack carried) {
+        if (!player.hasInfiniteMaterials()) {
+            Inventory inventory = player.getInventory();
+            ItemStack firstDye = dyeSlots.getItem(FIRST_DYE_SLOT_INDEX);
+            ItemStack secondDye = dyeSlots.getItem(SECOND_DYE_SLOT_INDEX);
+
+            if (!firstDye.isEmpty()) {
+                int slot = inventory.findSlotMatchingItem(firstDye);
+                if (slot == -1) throw new IllegalStateException("Could not find matching dye in player's inventory!");
+                inventory.removeItem(slot, 1);
+            }
+            if (!secondDye.isEmpty()) {
+                int slot = inventory.findSlotMatchingItem(secondDye);
+                if (slot == -1) throw new IllegalStateException("Could not find matching dye in player's inventory!");
+                inventory.removeItem(slot, 1);
+            }
+        }
+
         inputSlots.setItem(INPUT_SLOT_INDEX, ItemStack.EMPTY);
-        player.getInventory().removeItem(dyeSlots.getItem(FIRST_DYE_SLOT_INDEX));
-        player.getInventory().removeItem(dyeSlots.getItem(SECOND_DYE_SLOT_INDEX));
     }
 
     @Override
     protected boolean mayPickup(Player player, boolean hasItem) {
+        if (player.hasInfiniteMaterials()) return true;
+
         ItemStack firstDye = dyeSlots.getItem(FIRST_DYE_SLOT_INDEX);
         ItemStack secondDye = dyeSlots.getItem(SECOND_DYE_SLOT_INDEX);
         Inventory inventory = player.getInventory();

@@ -22,6 +22,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 
+import java.awt.Color;
+
 public class CanvasMod {
     public static final Block CANVAS = Utils.registerBlock(
             "canvas",
@@ -94,7 +96,7 @@ public class CanvasMod {
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaletteMenuUpdatePacket.TYPE, ((payload, context) -> {
             if (context.player().containerMenu instanceof PaletteMenu menu) {
-                menu.setRequestedColor(payload.rgb());
+                menu.setRequestedColor(new Color(payload.rgb()));
             }
         }));
     }
