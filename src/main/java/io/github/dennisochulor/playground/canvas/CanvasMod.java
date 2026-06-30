@@ -30,7 +30,8 @@ public class CanvasMod {
             CanvasBlock::new,
             BlockBehaviour.Properties.of()
                     .sound(SoundType.STONE)
-                    .strength(2),
+                    .strength(2)
+                    .requiresCorrectToolForDrops(),
             true
     );
 

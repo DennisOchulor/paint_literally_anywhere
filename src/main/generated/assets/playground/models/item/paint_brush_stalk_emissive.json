@@ -1,0 +1,7 @@
+{
+  "parent": "playground:item/paint_brush_template",
+  "textures": {
+    "layer0": "playground:item/paint_brush_emissive",
+    "layer1": "playground:item/paint_brush_stalk"
+  }
+}

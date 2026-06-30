@@ -4,8 +4,11 @@
     "models": [
       {
         "type": "minecraft:condition",
-        "property": "minecraft:has_component",
         "component": "playground:component/emissive",
+        "on_false": {
+          "type": "minecraft:model",
+          "model": "playground:item/paint_brush_stalk"
+        },
         "on_true": {
           "type": "minecraft:model",
           "model": "playground:item/paint_brush_stalk_emissive",
@@ -16,18 +19,14 @@
             }
           ]
         },
-
-        "on_false": {
-          "type": "minecraft:model",
-          "model": "playground:item/paint_brush_stalk"
-        }
+        "property": "minecraft:has_component"
       },
-
-
       {
         "type": "minecraft:condition",
-        "property": "minecraft:has_component",
         "component": "playground:component/rgb_color",
+        "on_false": {
+          "type": "minecraft:empty"
+        },
         "on_true": {
           "type": "minecraft:model",
           "model": "playground:item/paint_brush_paint",
@@ -38,10 +37,7 @@
             }
           ]
         },
-
-        "on_false": {
-          "type": "minecraft:empty"
-        }
+        "property": "minecraft:has_component"
       }
     ]
   }

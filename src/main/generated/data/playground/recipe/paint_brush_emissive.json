@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "canvas",
+  "ingredients": [
+    "playground:paint_brush",
+    "minecraft:glow_ink_sac"
+  ],
+  "result": {
+    "components": {
+      "playground:component/emissive": {}
+    },
+    "id": "playground:paint_brush"
+  }
+}

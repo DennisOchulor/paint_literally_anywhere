@@ -59,11 +59,11 @@ public final class Utils {
 
 
 
-    private static ResourceKey<Block> keyOfBlock(String name) {
+    public static ResourceKey<Block> keyOfBlock(String name) {
         return ResourceKey.create(Registries.BLOCK, Playground.id(name));
     }
 
-    private static ResourceKey<Item> keyOfItem(String name) {
+    public static ResourceKey<Item> keyOfItem(String name) {
         return ResourceKey.create(Registries.ITEM, Playground.id(name));
     }
 }
