@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "playground:block/palette"
+    "model": "playground:item/palette"
   }
 }

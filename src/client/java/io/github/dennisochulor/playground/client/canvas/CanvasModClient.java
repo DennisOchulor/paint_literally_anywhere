@@ -33,8 +33,8 @@ public class CanvasModClient {
         ItemEvents.USE.register((level, player, _) -> {
             ItemStack itemStack = player.getMainHandItem();
 
-            if (itemStack.getItem() != CanvasMod.PAINT_BRUSH) return InteractionResult.PASS;
-            if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return InteractionResult.PASS;
+            if (itemStack.getItem() != CanvasMod.PAINT_BRUSH) return null;
+            if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return null;
 
             int rgb = itemStack.getOrDefault(CanvasMod.RGB_COLOR, Color.YELLOW.getRGB());
             boolean emissive = itemStack.has(CanvasMod.EMISSIVE);

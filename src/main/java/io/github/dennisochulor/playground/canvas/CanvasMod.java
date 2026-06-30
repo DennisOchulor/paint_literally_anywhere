@@ -37,15 +37,20 @@ public class CanvasMod {
     public static final BlockEntityType<CanvasBlockEntity> CANVAS_BLOCK_ENTITY =
             Utils.registerBE("canvas", CanvasBlockEntity::new, CANVAS);
 
-    public static final Block PALETTE = Utils.registerBlock(
+
+    public static final Item PALETTE = Utils.registerItem(
             "palette",
-            PaletteBlock::new,
-            BlockBehaviour.Properties.of(),
-            true
+            PaletteItem::new,
+            new Item.Properties()
     );
 
     public static final MenuType<PaletteMenu> PALETTE_MENU =
             Registry.register(BuiltInRegistries.MENU, Playground.id("menu/palette"), new MenuType<>(PaletteMenu::new, FeatureFlagSet.of()));
+
+    public static final Item PAINT_BRUSH = Utils.registerItem("paint_brush",
+            PaintBrushItem::new,
+            new Item.Properties().durability(300)
+    );
 
     public static final DataComponentType<Integer> RGB_COLOR = Registry.register(
             BuiltInRegistries.DATA_COMPONENT_TYPE,
@@ -59,19 +64,15 @@ public class CanvasMod {
             DataComponentType.<Unit>builder().persistent(Unit.CODEC).networkSynchronized(Unit.STREAM_CODEC).build()
     );
 
-    public static final Item PAINT_BRUSH = Utils.registerItem("paint_brush", PaintBrushItem::new,
-            new Item.Properties().durability(300)
-    );
-
 
     public static void init() {
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS).register(tab -> {
             tab.accept(CANVAS.asItem());
-            tab.accept(PALETTE.asItem());
         });
 
         CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.TOOLS_AND_UTILITIES).register(tab -> {
             tab.accept(PAINT_BRUSH);
+            tab.accept(PALETTE);
         });
 
         PayloadTypeRegistry.clientboundPlay().register(ClientboundCanvasUpdatePacket.TYPE, ClientboundCanvasUpdatePacket.STREAM_CODEC);

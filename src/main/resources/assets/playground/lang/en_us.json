@@ -1,7 +1,7 @@
 {
   "block.playground.mirror": "Mirror",
   "block.playground.canvas": "Canvas",
-  "block.playground.palette": "Palette",
+  "item.playground.palette": "Palette",
   "item.playground.paint_brush": "Paint Brush",
   "item.playground.paint_brush.emissive": "Emissive Paint Brush"
 }

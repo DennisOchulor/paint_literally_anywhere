@@ -201,6 +201,6 @@ public class PaletteMenu extends ItemCombinerMenu {
 
     @Override
     protected boolean isValidBlock(BlockState state) {
-        return state.is(CanvasMod.PALETTE);
+        return true;
     }
 }
