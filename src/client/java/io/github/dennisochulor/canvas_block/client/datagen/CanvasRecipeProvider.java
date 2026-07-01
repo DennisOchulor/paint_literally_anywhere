@@ -12,10 +12,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.TransmuteRecipeBuilder;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -39,7 +42,6 @@ public class CanvasRecipeProvider extends FabricRecipeProvider {
                         .pattern("WCW")
                         .pattern("WWW")
                         .unlockedBy(getHasName(Items.WOOL.white()), has(Items.WOOL.white()))
-                        .group("canvas")
                         .save(output);
 
                 shaped(RecipeCategory.MISC, ModItems.PAINT_BRUSH)
@@ -49,17 +51,27 @@ public class CanvasRecipeProvider extends FabricRecipeProvider {
                         .pattern(" S ")
                         .pattern(" S ")
                         .unlockedBy(getHasName(Items.FEATHER), has(Items.FEATHER))
-                        .group("canvas")
+                        .group("paint_brush")
                         .save(output);
 
-                shapeless(RecipeCategory.MISC,
+                TransmuteRecipeBuilder.transmute(
+                        RecipeCategory.MISC,
+                        Ingredient.of(ModItems.PAINT_BRUSH),
+                        Ingredient.of(Items.GLOW_INK_SAC),
                         new ItemStackTemplate(ModItems.PAINT_BRUSH, DataComponentPatch.builder().set(ModComponents.EMISSIVE, Unit.INSTANCE).build()))
-                        .requires(ModItems.PAINT_BRUSH)
-                        .requires(Items.GLOW_INK_SAC)
                         .unlockedBy(getHasName(Items.GLOW_INK_SAC), has(Items.GLOW_INK_SAC))
                         .unlockedBy(getHasName(ModItems.PAINT_BRUSH), has(ModItems.PAINT_BRUSH))
-                        .group("canvas")
+                        .group("paint_brush")
                         .save(output, CanvasMod.MOD_ID + ":paint_brush_emissive");
+
+                shaped(RecipeCategory.MISC, ModItems.PALETTE)
+                        .define('W', Items.WOOL.white())
+                        .define('D', ItemTags.DYES)
+                        .pattern("DDD")
+                        .pattern("WWW")
+                        .pattern("   ")
+                        .unlockedBy(getHasName(Items.WOOL.white()), has(Items.WOOL.white()))
+                        .save(output);
             }
         };
     }
