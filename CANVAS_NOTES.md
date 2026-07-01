@@ -9,6 +9,3 @@ Client Item
 
 
 todo:
-- palette item recipe
-- canvas block drop with pixel data
-- paint_brush_emissive recipe copy components from input
