@@ -7,3 +7,8 @@ Client Item
         - true: paint_brush_tip (with tint)
         - false: empty
 
+
+todo:
+- palette item recipe
+- canvas block drop with pixel data
+- paint_brush_emissive recipe copy components from input
