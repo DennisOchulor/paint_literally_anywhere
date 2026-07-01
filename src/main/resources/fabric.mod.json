@@ -1,33 +1,33 @@
 {
 	"schemaVersion": 1,
-	"id": "playground",
+	"id": "canvas_block",
 	"version": "${version}",
-	"name": "Playground",
-	"description": "Where we play!",
+	"name": "Canvas Block",
+	"description": "A block you can draw on!",
 	"authors": [
 		"Ninjaking312"
 	],
 	"contact": {
-		"sources": "https://github.com/DennisOchulor/mc-playground"
+		"sources": "https://github.com/DennisOchulor/canvas_block"
 	},
 	"license": "MIT",
-	"icon": "assets/playground/icon.png",
+	"icon": "assets/canvas_block/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"io.github.dennisochulor.playground.Playground"
+			"io.github.dennisochulor.canvas_block.CanvasMod"
 		],
 		"client": [
-			"io.github.dennisochulor.playground.client.PlaygroundClient"
+			"io.github.dennisochulor.canvas_block.client.CanvasModClient"
 		],
 		"fabric-datagen": [
-			"io.github.dennisochulor.playground.client.PlaygroundDataGenerator"
+			"io.github.dennisochulor.canvas_block.client.datagen.ModDataGenerator"
 		]
 	},
 	"mixins": [
-		"playground.mixins.json",
+		"canvas_block.mixins.json",
 		{
-			"config": "playground.client.mixins.json",
+			"config": "canvas_block.client.mixins.json",
 			"environment": "client"
 		}
 	],

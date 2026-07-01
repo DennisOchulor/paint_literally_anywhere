@@ -1,0 +1,6 @@
+{
+  "block.canvas_block.canvas": "Canvas",
+  "item.canvas_block.palette": "Palette",
+  "item.canvas_block.paint_brush": "Paint Brush",
+  "item.canvas_block.paint_brush.emissive": "Emissive Paint Brush"
+}

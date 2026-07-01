@@ -1,3 +1,3 @@
-# Playground
+# Canvas Block
 
-Where we play!
+A block you can draw on!
