@@ -10,6 +10,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 
 import java.awt.Color;
@@ -21,15 +22,15 @@ class ColorCanvasWidget extends AbstractWidget {
     private float light;
     private int hueArgb;
 
-    public ColorCanvasWidget(int hueArgb, float saturation, float light) {
+    public ColorCanvasWidget(float hue, float saturation, float light) {
         super(0, 0, 100, 100, Component.literal("Color canvas"));
-        this.hueArgb = hueArgb;
+        updateRefHueValue(hue);
         this.saturation = saturation;
         this.light = light;
     }
 
-    public void setHueArgb(int hueArgb) {
-        this.hueArgb = hueArgb;
+    public void updateRefHueValue(float hue) {
+        this.hueArgb = Color.getHSBColor(hue, 1, 1).getRGB();
     }
 
     public float getSaturation() {
@@ -89,10 +90,16 @@ class ColorCanvasWidget extends AbstractWidget {
 
         graphics.outline(x, y, width, height, Color.WHITE.getRGB());
 
-        // Saturation gradient, from left (white) to right (argb)
-        // Light gradient, from top (white) to bottom (black)
+        // Saturation gradient, from left (white) to right (hueArgb)
         new GradientRectangleRenderState(graphics, gradientStartX(), gradientStartY(), x + width - 1, y + height - 1,
-                Color.WHITE.getRGB(), hueArgb, Color.BLACK.getRGB(), Color.BLACK.getRGB()
+                Color.WHITE.getRGB(), hueArgb, hueArgb, Color.WHITE.getRGB()
+        ).submit();
+
+        // Light gradient, from top (transparent) to bottom (black)
+        int blackTransparent = ARGB.transparent(Color.BLACK.getRGB());
+        int blackOpaque = ARGB.opaque(Color.BLACK.getRGB());
+        new GradientRectangleRenderState(graphics, gradientStartX(), gradientStartY(), x + width - 1, y + height - 1,
+                blackTransparent, blackTransparent, blackOpaque, blackOpaque
         ).submit();
 
         // Target for currently selected sat/light

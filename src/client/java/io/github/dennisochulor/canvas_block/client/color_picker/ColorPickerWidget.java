@@ -38,7 +38,7 @@ public class ColorPickerWidget extends AbstractContainerWidget {
         Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), hsl);
 
         hueSliderWidget = new HueSliderWidget(hsl[0]);
-        canvasWidget = new ColorCanvasWidget(Color.getHSBColor(hsl[0], 1, 1).getRGB(), hsl[1], hsl[2]);
+        canvasWidget = new ColorCanvasWidget(hsl[0], hsl[1], hsl[2]);
         previewWidget = new ColorPreviewWidget(color.getRGB());
 
         root = LinearLayout.vertical().spacing(10);
@@ -60,7 +60,7 @@ public class ColorPickerWidget extends AbstractContainerWidget {
         hueSliderWidget.setHue(hsl[0]);
         canvasWidget.setSaturation(hsl[1]);
         canvasWidget.setLight(hsl[2]);
-        canvasWidget.setHueArgb(Color.getHSBColor(hueSliderWidget.getHue(), 1, 1).getRGB());
+        canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
         previewWidget.setArgb(color.getRGB());
 
         listener.onColorChange(color, false);
@@ -72,7 +72,7 @@ public class ColorPickerWidget extends AbstractContainerWidget {
         if (!color.equals(newColor)) {
             color = newColor;
             previewWidget.setArgb(color.getRGB());
-            canvasWidget.setHueArgb(Color.getHSBColor(hueSliderWidget.getHue(), 1, 1).getRGB());
+            canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
             listener.onColorChange(color, true);
         }
     }

@@ -41,7 +41,7 @@ public class PaletteMenu extends ItemCombinerMenu {
 
     static {
         // DyeColor.VALUES.textColor is RGB with max alpha
-        Map<Color, Item> map = new IdentityHashMap<>(DyeColor.VALUES.size());
+        Map<Color, Item> map = new HashMap<>(DyeColor.VALUES.size());
         DyeColor.VALUES.forEach(dyeColor -> {
             Color color = new Color(dyeColor.getTextColor());
             map.put(color, Items.DYE.pick(dyeColor));
@@ -132,12 +132,12 @@ public class PaletteMenu extends ItemCombinerMenu {
         // sort from closest to furthest from requestedColor
         List<Color> sortedDyeColors = COLOR_TO_DYE_MAP.keySet().stream()
                 .sorted(Comparator.comparingDouble(color -> approxDistanceBetweenRGBValues(color, requestedColor))).toList();
-        Color firstDye = sortedDyeColors.getFirst();
-        Color secondDye = sortedDyeColors.get(1);
+        Color firstDyeColor = sortedDyeColors.getFirst();
+        Color secondDyeColor = sortedDyeColors.get(1);
 
-        dyeSlots.setItem(FIRST_DYE_SLOT_INDEX, new ItemStack(COLOR_TO_DYE_MAP.get(firstDye)));
-        boolean needsSecondDye = approxDistanceBetweenRGBValues(firstDye, requestedColor) > 150;
-        dyeSlots.setItem(SECOND_DYE_SLOT_INDEX, needsSecondDye ? new ItemStack(COLOR_TO_DYE_MAP.get(secondDye)) : ItemStack.EMPTY);
+        dyeSlots.setItem(FIRST_DYE_SLOT_INDEX, new ItemStack(COLOR_TO_DYE_MAP.get(firstDyeColor)));
+        boolean needsSecondDye = approxDistanceBetweenRGBValues(firstDyeColor, requestedColor) > 150;
+        dyeSlots.setItem(SECOND_DYE_SLOT_INDEX, needsSecondDye ? new ItemStack(COLOR_TO_DYE_MAP.get(secondDyeColor)) : ItemStack.EMPTY);
     }
 
     // https://stackoverflow.com/a/9085524
