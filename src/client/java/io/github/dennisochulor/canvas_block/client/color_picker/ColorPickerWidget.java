@@ -69,10 +69,12 @@ public class ColorPickerWidget extends AbstractContainerWidget {
     private void updateColorFromHSL() {
         Color newColor = Color.getHSBColor(hueSliderWidget.getHue(), canvasWidget.getSaturation(), canvasWidget.getLight());
 
+        // for certain sat/light values, newColor == color regardless of hue value
+        canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
+
         if (!color.equals(newColor)) {
             color = newColor;
             previewWidget.setArgb(color.getRGB());
-            canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
             listener.onColorChange(color, true);
         }
     }
