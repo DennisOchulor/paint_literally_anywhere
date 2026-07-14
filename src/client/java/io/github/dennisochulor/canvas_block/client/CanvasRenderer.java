@@ -22,8 +22,6 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-import java.util.BitSet;
-
 import static net.minecraft.core.Direction.*;
 
 public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, CanvasRenderState> {
@@ -75,7 +73,6 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
             state.perFaceLight[dir.ordinal()] = sideLight;
 
             state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
-            state.emissiveSides[dir.ordinal()] = blockEntity.copyEmissive(dir);
         }
     }
 
@@ -102,7 +99,6 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
     private static void side(CanvasRenderState state, Direction side, Direction rowDir, Direction colDir, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
         int[] pixels = state.sides[side.ordinal()];
         int lightCoords = state.perFaceLight[side.ordinal()];
-        BitSet emissiveBitSet = state.emissiveSides[side.ordinal()];
 
         if (pixels == null) return;
 
@@ -117,10 +113,11 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
         for (int row = 0; row < CanvasBlock.SIZE; row++) {
             for (int col = 0; col < CanvasBlock.SIZE; col++) {
                 int index = row * CanvasBlock.SIZE + col;
-                int color = ARGB.opaque(pixels[index]); // convert RGB to ARGB with max alpha
-                boolean emissive = emissiveBitSet != null && emissiveBitSet.get(index);
+                int color = pixels[index];
+                int opaqueColor = ARGB.opaque(color); // alpha is really used as emissive indicator, always render as opaque
+                boolean emissive = CanvasBlock.isEmissive(color);
 
-                if (color == CanvasBlock.DEFAULT_COLOR && !emissive) continue;
+                if (color == CanvasBlock.DEFAULT_COLOR) continue;
 
                 float xBase = xRowStep != 0 ? row * xRowStep : col * xColStep;
                 float yBase = yRowStep != 0 ? row * yRowStep : col * yColStep;
@@ -129,36 +126,36 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
                     if (side == UP) { // UP needs a different vertex winding order to not be culled for some reason idk man...
                         // base
                         buffer.addVertex(pose, xBase, yBase, zBase)
-                                .setColor(color).setLight(lightCoords).setUv(0, 1).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(0, 1).setLineWidth(1);
 
                         // step col
                         buffer.addVertex(pose, xBase + xColStep, yBase + yColStep, zBase + zColStep)
-                                .setColor(color).setLight(lightCoords).setUv(0, 0).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(0, 0).setLineWidth(1);
 
                         // step row, step col
                         buffer.addVertex(pose, xBase + xRowStep + xColStep, yBase + yRowStep + yColStep, zBase + zRowStep + zColStep)
-                                .setColor(color).setLight(lightCoords).setUv(1, 0).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(1, 0).setLineWidth(1);
 
                         // step row
                         buffer.addVertex(pose, xBase + xRowStep, yBase + yRowStep, zBase + zRowStep)
-                                .setColor(color).setLight(lightCoords).setUv(1, 1).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(1, 1).setLineWidth(1);
                     }
                     else {
                         // base
                         buffer.addVertex(pose, xBase, yBase, zBase)
-                                .setColor(color).setLight(lightCoords).setUv(0, 1).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(0, 1).setLineWidth(1);
 
                         // step row
                         buffer.addVertex(pose, xBase + xRowStep, yBase + yRowStep, zBase + zRowStep)
-                                .setColor(color).setLight(lightCoords).setUv(1, 1).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(1, 1).setLineWidth(1);
 
                         // step row, step col
                         buffer.addVertex(pose, xBase + xRowStep + xColStep, yBase + yRowStep + yColStep, zBase + zRowStep + zColStep)
-                                .setColor(color).setLight(lightCoords).setUv(1, 0).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(1, 0).setLineWidth(1);
 
                         // step col
                         buffer.addVertex(pose, xBase + xColStep, yBase + yColStep, zBase + zColStep)
-                                .setColor(color).setLight(lightCoords).setUv(0, 0).setLineWidth(1);
+                                .setColor(opaqueColor).setLight(lightCoords).setUv(0, 0).setLineWidth(1);
                     }
                 });
             }

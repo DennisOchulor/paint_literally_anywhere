@@ -12,7 +12,6 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,12 +23,12 @@ import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Objects;
 
 public class CanvasBlockEntity extends BlockEntity {
+    // int is ARGB, where alpha represents emissive (opaque) or non-emissive (transparent)
+    // during rendering, the actual alpha is always opaque
     private final int[] @Nullable [] sides = new int[6][];
-    private final @Nullable BitSet [] emissiveSides = new BitSet[6];
 
     public CanvasBlockEntity(BlockPos worldPosition, BlockState blockState) {
         super(ModBlockEntities.CANVAS_BLOCK_ENTITY, worldPosition, blockState);
@@ -41,10 +40,7 @@ public class CanvasBlockEntity extends BlockEntity {
 
         for (Direction dir : Direction.values()) {
             int[] sideArr = sides[dir.ordinal()];
-            BitSet bitSet = emissiveSides[dir.ordinal()];
-
             if (sideArr != null) output.putIntArray(dir.getName(), sideArr);
-            output.storeNullable("emissive_" + dir.getName(), ExtraCodecs.BIT_SET, bitSet);
         }
     }
 
@@ -54,8 +50,6 @@ public class CanvasBlockEntity extends BlockEntity {
 
         for (Direction dir : Direction.values()) {
             input.getIntArray(dir.getName()).ifPresent(side -> sides[dir.ordinal()] = side);
-            input.read("emissive_" + dir.getName(), ExtraCodecs.BIT_SET)
-                    .ifPresent(bitSet -> emissiveSides[dir.ordinal()] = bitSet);
         }
     }
 
@@ -100,18 +94,8 @@ public class CanvasBlockEntity extends BlockEntity {
             Arrays.fill(sideArr, CanvasBlock.DEFAULT_COLOR);
             sides[side.ordinal()] = sideArr;
         }
-        sideArr[index] = color;
 
-        BitSet bitSet = emissiveSides[side.ordinal()];
-        if (emissive) {
-            if (bitSet == null) {
-                bitSet = new BitSet(CanvasBlock.SIZE * CanvasBlock.SIZE);
-                emissiveSides[side.ordinal()] = bitSet;
-            }
-            bitSet.set(index);
-        }
-        else if (bitSet != null) bitSet.set(index, false);
-
+        sideArr[index] = CanvasBlock.withEmissiveData(color, emissive);
 
         if (!Objects.requireNonNull(level).isClientSide()) {
             this.setChanged();
@@ -122,28 +106,26 @@ public class CanvasBlockEntity extends BlockEntity {
         }
     }
 
+    /**
+     * @return the ARGB color, with alpha opaque meaning emissive and
+     * alpha transparent meaning non-emissive.
+     */
     public int getPixelColor(Direction side, int x, int y) {
         return getPixelColor(side, index(x, y));
     }
 
+    /**
+     * @return the ARGB color, with alpha opaque meaning emissive and
+     * alpha transparent meaning non-emissive.
+     */
     public int getPixelColor(Direction side, int index) {
         int[] sideArr = sides[side.ordinal()];
         return sideArr != null ? sideArr[index] : CanvasBlock.DEFAULT_COLOR;
     }
 
-    public boolean isEmissive(Direction side, int index) {
-        BitSet bitSet = emissiveSides[side.ordinal()];
-        return bitSet != null && bitSet.get(index);
-    }
-
     public int @Nullable [] copyPixelColors(Direction dir) {
         int[] sideArr = sides[dir.ordinal()];
         return sideArr != null ? Arrays.copyOf(sideArr, sideArr.length) : null;
-    }
-
-    public @Nullable BitSet copyEmissive(Direction dir) {
-        BitSet bitSet = emissiveSides[dir.ordinal()];
-        return bitSet != null ? (BitSet) bitSet.clone() : null;
     }
 
     public int index(int x, int y) {

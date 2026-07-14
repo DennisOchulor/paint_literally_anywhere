@@ -6,6 +6,7 @@ import io.github.dennisochulor.canvas_block.item.ModComponents;
 import io.github.dennisochulor.canvas_block.item.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -22,7 +23,19 @@ import java.awt.Color;
 
 public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContainer {
     public static final int SIZE = 16;
-    public static final int DEFAULT_COLOR = Color.WHITE.getRGB();
+    public static final int DEFAULT_COLOR = withEmissiveData(Color.WHITE.getRGB(), false); // non-emissive pure white
+
+    public static boolean isEmissive(int argb) {
+        int alpha = ARGB.alpha(argb);
+
+        if (alpha == 0) return false;
+        else if (alpha == 255) return true;
+        else throw new IllegalArgumentException("alpha must be either 0 or 255!");
+    }
+
+    public static int withEmissiveData(int rgb, boolean emissive) {
+        return emissive ? ARGB.opaque(rgb) : ARGB.transparent(rgb);
+    }
 
     public CanvasBlock(Properties properties) {
         super(properties);
@@ -59,7 +72,7 @@ public class CanvasBlock extends BaseEntityBlock implements SelectableSlotContai
                 return InteractionResult.PASS;
             }
 
-            if (color == canvas.getPixelColor(dir, pixelIndex) && emissive == canvas.isEmissive(dir, pixelIndex)) {
+            if (withEmissiveData(color, emissive) == canvas.getPixelColor(dir, pixelIndex)) {
                 return InteractionResult.PASS;
             }
 
