@@ -16,9 +16,11 @@ import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -66,13 +68,15 @@ public class CanvasRenderer implements BlockEntityRenderer<CanvasBlockEntity, Ca
 
         if (blockEntity.getLevel() == null) return;
 
+        BlockState blockState = blockEntity.getBlockState();
         for (Direction dir : Direction.values()) {
-            int sideLight;
-            sideLight = LightCoordsUtil.getLightCoords(LightCoordsUtil.BrightnessGetter.DEFAULT,
-                    blockEntity.getLevel(), blockEntity.getBlockState(), blockEntity.getBlockPos().relative(dir));
-            state.perFaceLight[dir.ordinal()] = sideLight;
+            BlockPos relativePos = blockEntity.getBlockPos().relative(dir);
 
-            state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
+            if (CanvasBlock.shouldRenderFace(blockState, blockEntity.getLevel().getBlockState(relativePos), dir)) {
+                state.perFaceLight[dir.ordinal()] = LightCoordsUtil.getLightCoords(LightCoordsUtil.BrightnessGetter.DEFAULT,
+                        blockEntity.getLevel(), blockState, relativePos);
+                state.sides[dir.ordinal()] = blockEntity.copyPixelColors(dir);
+            }
         }
     }
 
