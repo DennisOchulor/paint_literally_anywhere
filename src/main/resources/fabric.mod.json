@@ -1,33 +1,33 @@
 {
 	"schemaVersion": 1,
-	"id": "canvas_block",
+	"id": "paint_literally_anywhere",
 	"version": "${version}",
-	"name": "Canvas Block",
-	"description": "A block you can draw on!",
+	"name": "Paint Literally Anywhere",
+	"description": "The world is your canvas!",
 	"authors": [
 		"Ninjaking312"
 	],
 	"contact": {
-		"sources": "https://github.com/DennisOchulor/canvas_block"
+		"sources": "https://github.com/DennisOchulor/paint_literally_anywhere"
 	},
 	"license": "MIT",
-	"icon": "assets/canvas_block/icon.png",
+	"icon": "assets/paint_literally_anywhere/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"io.github.dennisochulor.canvas_block.CanvasMod"
+			"io.github.dennisochulor.paint_literally_anywhere.PLAMod"
 		],
 		"client": [
-			"io.github.dennisochulor.canvas_block.client.CanvasModClient"
+          "io.github.dennisochulor.paint_literally_anywhere.client.PLAModClient"
 		],
 		"fabric-datagen": [
-			"io.github.dennisochulor.canvas_block.client.datagen.ModDataGenerator"
+          "io.github.dennisochulor.paint_literally_anywhere.client.datagen.ModDataGenerator"
 		]
 	},
 	"mixins": [
-		"canvas_block.mixins.json",
+		"paint_literally_anywhere.mixins.json",
 		{
-			"config": "canvas_block.client.mixins.json",
+			"config": "paint_literally_anywhere.client.mixins.json",
 			"environment": "client"
 		}
 	],

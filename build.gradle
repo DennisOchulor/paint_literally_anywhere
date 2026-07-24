@@ -18,7 +18,7 @@ loom {
 	splitEnvironmentSourceSets()
 
 	mods {
-		"canvas_block" {
+		"paint_literally_anywhere" {
 			sourceSet sourceSets.main
 			sourceSet sourceSets.client
 		}

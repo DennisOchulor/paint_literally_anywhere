@@ -10,4 +10,4 @@ pluginManagement {
 }
 
 // Should match your modid
-rootProject.name = 'canvas_block'
+rootProject.name = 'paint_literally_anywhere'

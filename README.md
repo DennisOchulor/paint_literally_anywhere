@@ -1,3 +1,3 @@
-# Canvas Block
+# Paint Literally Anywhere
 
-A block you can draw on!
+The world is your canvas!
