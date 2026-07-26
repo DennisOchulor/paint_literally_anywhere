@@ -1,5 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere.shape;
 
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
@@ -7,13 +8,17 @@ import org.joml.Vector3fc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class ShapeUtil {
     private ShapeUtil() {}
 
-    private static final HashMap<QuadTemplate, QuadTemplate> TEMPLATE_CACHE = new HashMap<>();
+    private static final Map<QuadTemplate, QuadTemplate> TEMPLATE_CACHE = new HashMap<>();
+    private static final QuadTemplate[] BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
 
     public static QuadTemplate[] voxelShapeToQuadTemplates(VoxelShape voxelShape) {
+        if (voxelShape == Shapes.block()) return BLOCK_TEMPLATES;
+
         List<QuadTemplate> quads = new ArrayList<>();
 
         // obtain 6 quads from each box
