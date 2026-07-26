@@ -1,9 +1,11 @@
 package io.github.dennisochulor.paint_literally_anywhere.client;
 
 import io.github.dennisochulor.paint_literally_anywhere.ModMenuTypes;
+import io.github.dennisochulor.paint_literally_anywhere.client.model.ModModelLoadingPlugin;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemTintSources;
@@ -17,6 +19,7 @@ public class PLAModClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        ModelLoadingPlugin.register(new ModModelLoadingPlugin());
         ItemTintSources.ID_MAPPER.put(RGBColorTintSource.ID, RGBColorTintSource.MAP_CODEC);
         MenuScreens.register(ModMenuTypes.PALETTE_MENU, PaletteScreen::new);
 
