@@ -31,6 +31,7 @@ public class PLAMod implements ModInitializer {
         ModBlocks.init();
         ModBlockEntities.init();
         ModMenuTypes.init();
+        ModAttachmentTypes.init();
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             MixinEnvironment.getCurrentEnvironment().audit();

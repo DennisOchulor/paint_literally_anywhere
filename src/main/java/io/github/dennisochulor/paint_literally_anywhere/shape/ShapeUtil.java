@@ -65,4 +65,11 @@ public final class ShapeUtil {
 
         return quadsArr;
     }
+
+    /**
+     * @return the cached QuadTemplate, which may be the one passed in or a previously cached one.
+     */
+    public static QuadTemplate cache(QuadTemplate template) {
+        return TEMPLATE_CACHE.computeIfAbsent(template, _ -> template);
+    }
 }
