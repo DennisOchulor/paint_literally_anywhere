@@ -1,9 +1,11 @@
 package io.github.dennisochulor.paint_literally_anywhere.item;
 
+import io.github.dennisochulor.paint_literally_anywhere.ChunkCanvasData;
+import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
+import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
+import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -39,8 +41,32 @@ public class PaintBrushItem extends Item {
     public InteractionResult useOn(UseOnContext context) {
         if (context.getLevel().isClientSide()) return InteractionResult.PASS;
 
+        ItemStack itemStack = context.getItemInHand();
+        Integer argb = itemStack.get(ModComponents.RGB_COLOR);
+        boolean emissive = itemStack.has(ModComponents.EMISSIVE);
+
+        if (argb == null) return InteractionResult.PASS;
+
         ServerLevel level = (ServerLevel) context.getLevel();
-        BlockState state = level.getBlockState(context.getClickedPos());
+        BlockPos blockPos = context.getClickedPos();
+        BlockState state = level.getBlockState(blockPos);
         Vec3 hitPos = context.getClickLocation();
+        QuadTemplate[] quads = ((BlockStateBaseExt) state).pla$quads(level, blockPos);
+
+        QuadTemplate clippedQuad = null;
+        for (QuadTemplate quad : quads) {
+            if (quad.clip(hitPos)) {
+                clippedQuad = quad;
+                break;
+            }
+        }
+
+        if (clippedQuad == null) {
+            PLAMod.LOGGER.warn("Block {} at {}/{} called useOn but somehow no quad was clipped!", state, blockPos, hitPos);
+            return InteractionResult.PASS;
+        }
+
+        ChunkCanvasData.paintServer(level.getChunkAt(blockPos), clippedQuad, blockPos, hitPos, argb, emissive);
+        return InteractionResult.CONSUME;
     }
 }

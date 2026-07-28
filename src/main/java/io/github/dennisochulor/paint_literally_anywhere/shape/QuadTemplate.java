@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3fc;
 
 public record QuadTemplate(
@@ -21,7 +22,7 @@ public record QuadTemplate(
                         ExtraCodecs.VECTOR3F.fieldOf("v1").forGetter(QuadTemplate::v1),
                         ExtraCodecs.VECTOR3F.fieldOf("v2").forGetter(QuadTemplate::v2),
                         ExtraCodecs.VECTOR3F.fieldOf("v3").forGetter(QuadTemplate::v3)
-                ).apply(instance, QuadTemplate::new)
+                ).apply(instance, (v0, v1, v2, v3) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3)))
     );
 
     public static final StreamCodec<ByteBuf, QuadTemplate> STREAM_CODEC = StreamCodec.composite(
@@ -29,6 +30,12 @@ public record QuadTemplate(
             ByteBufCodecs.VECTOR3F, QuadTemplate::v1,
             ByteBufCodecs.VECTOR3F, QuadTemplate::v2,
             ByteBufCodecs.VECTOR3F, QuadTemplate::v3,
-            QuadTemplate::new
+            (v0, v1, v2, v3) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3))
     );
+
+
+
+    public boolean clip(Vec3 hitPos) {
+        return false;
+    }
 }
