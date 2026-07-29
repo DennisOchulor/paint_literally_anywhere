@@ -3,7 +3,9 @@
   "package": "io.github.dennisochulor.paint_literally_anywhere.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "BlockStateBaseMixin"
+    "BlockStateBaseMixin",
+    "LevelChunkMixin",
+    "PlayerChunkSenderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

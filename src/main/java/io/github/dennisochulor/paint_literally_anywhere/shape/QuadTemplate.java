@@ -7,13 +7,18 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 public record QuadTemplate(
         Vector3fc v0,
         Vector3fc v1,
         Vector3fc v2,
-        Vector3fc v3
+        Vector3fc v3,
+
+        // non-serialized data
+        Vector3fc rowVector,
+        Vector3fc colVector
 ) {
     public static final Codec<QuadTemplate> CODEC = RecordCodecBuilder.create(
             instance ->
@@ -34,8 +39,44 @@ public record QuadTemplate(
     );
 
 
+    public static Vector3f localize(Vec3 vec) {
+        float xAbsolute = (float) Math.abs(vec.x());
+        float yAbsolute = (float) Math.abs(vec.y());
+        float zAbsolute = (float) Math.abs(vec.z());
+
+        return new Vector3f((float) (xAbsolute - Math.floor(xAbsolute)),
+                (float) (yAbsolute - Math.floor(yAbsolute)), (float) (zAbsolute - Math.floor(zAbsolute)));
+    }
+
+
+    public QuadTemplate(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3) {
+        Vector3f colVector = new Vector3f();
+        Vector3f rowVector = new Vector3f();
+        v1.sub(v0, colVector);
+        v3.sub(v0, rowVector);
+
+        this(v0, v1, v2, v3, rowVector, colVector);
+    }
+
 
     public boolean clip(Vec3 hitPos) {
-        return false;
+        Vector3fc localHitPos = localize(hitPos);
+
+        // 2D cross product of each directed edge from A to B, and hit point P
+        float[] products = new float[4];
+        products[0] = (v1.x() - v0.x()) * (localHitPos.y() - v0.y()) - (v1.y() - v0.y()) * (localHitPos.x() - v0.x());
+        products[1] = (v2.x() - v1.x()) * (localHitPos.y() - v1.y()) - (v2.y() - v1.y()) * (localHitPos.x() - v1.x());
+        products[2] = (v3.x() - v2.x()) * (localHitPos.y() - v2.y()) - (v3.y() - v2.y()) * (localHitPos.x() - v2.x());
+        products[3] = (v0.x() - v3.x()) * (localHitPos.y() - v3.y()) - (v0.y() - v3.y()) * (localHitPos.x() - v3.x());
+
+        boolean positive = products[0] > 0;
+        for (int i = 0; i < products.length; i++) {
+            float p = products[i];
+            if (p == 0) return true;
+            if (p > 0 && !positive) return false;
+            if (p < 0 && positive) return false;
+        }
+
+        return true;
     }
 }

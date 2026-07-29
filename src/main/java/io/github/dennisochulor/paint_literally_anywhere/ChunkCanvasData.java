@@ -2,7 +2,9 @@ package io.github.dennisochulor.paint_literally_anywhere;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataRemovalPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataUpdatePacket;
+import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadInstance;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import io.netty.buffer.ByteBuf;
@@ -12,13 +14,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public record ChunkCanvasData(
         Map<BlockPos, List<QuadInstance>> blocks
@@ -88,5 +88,103 @@ public record ChunkCanvasData(
         }
 
         quad.paintClient(packet.index(), packet.argb(), packet.emissive());
+    }
+
+    public static void removeServer(LevelChunk chunk, BlockPos pos, BlockState newState) {
+        if (chunk.getLevel().isClientSide()) throw new IllegalStateException("removeServer called on client!");
+
+        var data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+
+        if (data == null) return;
+
+        var blocks = data.blocks();
+        List<QuadInstance> instances = blocks.get(pos);
+
+        if (instances == null) return;
+
+        Set<QuadTemplate> templates = ((BlockStateBaseExt) newState).pla$quads(chunk.getLevel(), pos);
+        Iterator<QuadInstance> iterator = instances.listIterator();
+        Set<QuadTemplate> removed = new HashSet<>();
+
+        while (iterator.hasNext()) {
+            QuadTemplate instanceTemplate = iterator.next().template();
+
+            if (!templates.contains(instanceTemplate)) {
+                removed.add(instanceTemplate);
+                iterator.remove();
+            }
+        }
+
+        if (!removed.isEmpty()) { // manually sync removals
+            if (instances.isEmpty()) {
+                blocks.remove(pos);
+            }
+            if (blocks.isEmpty()) {
+                chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+            }
+
+            var packet = new ClientboundChunkCanvasDataRemovalPacket(pos, removed);
+            PlayerLookup.tracking((ServerLevel) chunk.getLevel(), pos).forEach(player -> ServerPlayNetworking.send(player, packet));
+            chunk.markUnsaved(); // ensure attachment saves properly since we might not have called removeAttached()
+        }
+    }
+
+    public static void removeClient(LevelChunk chunk, ClientboundChunkCanvasDataRemovalPacket packet) {
+        if (!chunk.getLevel().isClientSide()) throw new IllegalStateException("removeClient called on server!");
+
+        var data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+
+        if (data == null) {
+            PLAMod.LOGGER.warn("Received removal packet for non-existant ChunkCanvasData! {}/{}", chunk.getLevel().dimension(), packet.pos());
+            return;
+        }
+
+        var blocks = data.blocks();
+        List<QuadInstance> instances = blocks.get(packet.pos());
+
+        if (instances == null) {
+            PLAMod.LOGGER.warn("Received removal packet for non-existant List<QuadInstance>! {}/{}", chunk.getLevel().dimension(), packet.pos());
+            return;
+        }
+
+        instances.removeIf(quadInstance -> packet.templates().contains(quadInstance.template()));
+
+        if (instances.isEmpty()) {
+            blocks.remove(packet.pos());
+        }
+        if (blocks.isEmpty()) {
+            chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+        }
+    }
+
+    public static void validateOnChunkLoad(LevelChunk chunk) {
+        if (chunk.getLevel().isClientSide()) throw new IllegalStateException("validateOnChunkLoad called on client!");
+
+        var data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+
+        if (data == null) return;
+
+        var iterator = data.blocks().entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            BlockPos pos = entry.getKey();
+            List<QuadInstance> instances = entry.getValue();
+
+            BlockState state = chunk.getLevel().getBlockState(pos);
+            Set<QuadTemplate> templates = ((BlockStateBaseExt) state).pla$quads(chunk.getLevel(), pos);
+
+            instances.removeIf(quadInstance -> !templates.contains(quadInstance.template()));
+
+            if (instances.isEmpty()) {
+                iterator.remove();
+            }
+        }
+
+        if (data.blocks().isEmpty()) {
+            chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+        }
+
+        // Since this is called on server chunk load, supposedly no clients have been sent the chunk yet.
+        // So no manual syncing of anything is needed, let initial sync handle it.
     }
 }

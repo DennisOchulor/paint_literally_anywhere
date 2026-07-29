@@ -6,6 +6,7 @@ import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.network.ModNetworking;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -32,6 +33,10 @@ public class PLAMod implements ModInitializer {
         ModBlockEntities.init();
         ModMenuTypes.init();
         ModAttachmentTypes.init();
+
+        ServerChunkEvents.CHUNK_LOAD.register((_, chunk, generated) -> {
+            if (!generated) ChunkCanvasData.validateOnChunkLoad(chunk);
+        });
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             MixinEnvironment.getCurrentEnvironment().audit();

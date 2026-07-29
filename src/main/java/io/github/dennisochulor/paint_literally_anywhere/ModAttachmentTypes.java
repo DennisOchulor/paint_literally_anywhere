@@ -1,7 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere;
 
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 
 public final class ModAttachmentTypes {
@@ -11,7 +10,6 @@ public final class ModAttachmentTypes {
             AttachmentRegistry.create(PLAMod.id("chunk_canvas_data"),
                      builder ->
                              builder.persistent(ChunkCanvasData.CODEC)
-                                     .syncWith(ChunkCanvasData.STREAM_CODEC, AttachmentSyncPredicate.all())
             );
 
 

@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 import java.awt.Color;
+import java.util.Set;
 
 public class PaintBrushItem extends Item {
     public PaintBrushItem(Properties properties) {
@@ -51,7 +52,7 @@ public class PaintBrushItem extends Item {
         BlockPos blockPos = context.getClickedPos();
         BlockState state = level.getBlockState(blockPos);
         Vec3 hitPos = context.getClickLocation();
-        QuadTemplate[] quads = ((BlockStateBaseExt) state).pla$quads(level, blockPos);
+        Set<QuadTemplate> quads = ((BlockStateBaseExt) state).pla$quads(level, blockPos);
 
         QuadTemplate clippedQuad = null;
         for (QuadTemplate quad : quads) {

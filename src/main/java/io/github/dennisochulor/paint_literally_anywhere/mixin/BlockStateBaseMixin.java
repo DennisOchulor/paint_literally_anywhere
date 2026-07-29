@@ -12,16 +12,18 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 
+import java.util.Set;
+
 @Mixin(BlockBehaviour.BlockStateBase.class)
 abstract class BlockStateBaseMixin implements BlockStateBaseExt {
     @Shadow
     public abstract VoxelShape getShape(BlockGetter level, BlockPos pos);
 
     @Unique
-    private QuadTemplate @Nullable [] pla$quads;
+    private @Nullable Set<QuadTemplate> pla$quads;
 
     @Override
-    public QuadTemplate[] pla$quads(BlockGetter level, BlockPos pos) {
+    public Set<QuadTemplate> pla$quads(BlockGetter level, BlockPos pos) {
         if (pla$quads == null) {
             pla$quads = ShapeUtil.voxelShapeToQuadTemplates(getShape(level, pos));
         }

@@ -5,18 +5,15 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class ShapeUtil {
     private ShapeUtil() {}
 
     private static final Map<QuadTemplate, QuadTemplate> TEMPLATE_CACHE = new HashMap<>();
-    private static final QuadTemplate[] BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
+    private static final Set<QuadTemplate> BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
 
-    public static QuadTemplate[] voxelShapeToQuadTemplates(VoxelShape voxelShape) {
+    public static Set<QuadTemplate> voxelShapeToQuadTemplates(VoxelShape voxelShape) {
         if (voxelShape == Shapes.block()) return BLOCK_TEMPLATES;
 
         List<QuadTemplate> quads = new ArrayList<>();
@@ -49,21 +46,19 @@ public final class ShapeUtil {
             quads.add(new QuadTemplate(v0, v1, v5, v4));
         });
 
-        QuadTemplate[] quadsArr = new QuadTemplate[quads.size()];
         for (int i = 0; i < quads.size(); i++) {
             QuadTemplate newTemplate = quads.get(i);
             QuadTemplate cached = TEMPLATE_CACHE.get(newTemplate);
 
             if (cached != null) {
-                quadsArr[i] = cached;
+                quads.set(i, cached);
             }
             else {
-                quadsArr[i] = newTemplate;
                 TEMPLATE_CACHE.put(newTemplate, newTemplate);
             }
         }
 
-        return quadsArr;
+        return Set.copyOf(quads);
     }
 
     /**
