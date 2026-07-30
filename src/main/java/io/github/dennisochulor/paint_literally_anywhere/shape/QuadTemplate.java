@@ -43,13 +43,17 @@ public record QuadTemplate(
     );
 
 
-    public static Vector3f localize(Vec3 vec) {
-        float xAbsolute = (float) Math.abs(vec.x());
-        float yAbsolute = (float) Math.abs(vec.y());
-        float zAbsolute = (float) Math.abs(vec.z());
+    public Vector3f localize(Vec3 vec) {
+        float x = (float) Math.abs((Math.abs(vec.x()) - Math.abs(Math.floor(vec.x()))));
+        float y = (float) Math.abs((Math.abs(vec.y()) - Math.abs(Math.floor(vec.y()))));
+        float z = (float) Math.abs((Math.abs(vec.z()) - Math.abs(Math.floor(vec.z()))));
 
-        return new Vector3f((float) (xAbsolute - Math.floor(xAbsolute)),
-                (float) (yAbsolute - Math.floor(yAbsolute)), (float) (zAbsolute - Math.floor(zAbsolute)));
+        // Account for both most +ve and -ve of each axis being 0
+        if (x == 0 && direction == Direction.EAST) x = 1;
+        if (y == 0 && direction == Direction.UP) y = 1;
+        if (z == 0 && direction == Direction.SOUTH) z = 1;
+
+        return new Vector3f(x, y, z);
     }
 
 

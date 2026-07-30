@@ -63,7 +63,7 @@ public record QuadInstance(
      * @return the painted index, or -1 if the pixel was already in the requested state.
      */
     public int paintServer(Vec3 hitPos, int argb, boolean emissive) {
-        Vector3fc localHitPos = QuadTemplate.localize(hitPos);
+        Vector3fc localHitPos = template.localize(hitPos);
 
         // Find distance from a point to a line
         Vector3f v0ToHitPos = new Vector3f();
