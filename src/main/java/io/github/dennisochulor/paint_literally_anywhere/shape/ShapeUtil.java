@@ -1,5 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere.shape;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
@@ -14,7 +15,9 @@ public final class ShapeUtil {
     private static final Set<QuadTemplate> BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
 
     public static Set<QuadTemplate> voxelShapeToQuadTemplates(VoxelShape voxelShape) {
-        if (voxelShape == Shapes.block()) return BLOCK_TEMPLATES;
+        if (voxelShape == Shapes.block() && BLOCK_TEMPLATES != null) {
+            return BLOCK_TEMPLATES;
+        }
 
         List<QuadTemplate> quads = new ArrayList<>();
 
@@ -38,12 +41,12 @@ public final class ShapeUtil {
             Vector3fc v7 = new Vector3f(xMin, yMax, zMax);
 
             // define 6 faces from those 8 vertices
-            quads.add(new QuadTemplate(v4, v5, v6, v7));
-            quads.add(new QuadTemplate(v1, v0, v3, v2));
-            quads.add(new QuadTemplate(v0, v4, v7, v3));
-            quads.add(new QuadTemplate(v5, v1, v2, v6));
-            quads.add(new QuadTemplate(v3, v7, v6, v2));
-            quads.add(new QuadTemplate(v0, v1, v5, v4));
+            quads.add(new QuadTemplate(v4, v5, v6, v7, Direction.SOUTH));
+            quads.add(new QuadTemplate(v1, v0, v3, v2, Direction.NORTH));
+            quads.add(new QuadTemplate(v0, v4, v7, v3, Direction.WEST));
+            quads.add(new QuadTemplate(v5, v1, v2, v6, Direction.EAST));
+            quads.add(new QuadTemplate(v3, v7, v6, v2, Direction.UP));
+            quads.add(new QuadTemplate(v0, v1, v5, v4, Direction.DOWN));
         });
 
         for (int i = 0; i < quads.size(); i++) {

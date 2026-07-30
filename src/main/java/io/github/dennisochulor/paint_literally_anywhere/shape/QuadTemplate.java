@@ -3,6 +3,7 @@ package io.github.dennisochulor.paint_literally_anywhere.shape;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.Direction;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
@@ -15,10 +16,11 @@ public record QuadTemplate(
         Vector3fc v1,
         Vector3fc v2,
         Vector3fc v3,
+        Direction direction,
 
         // non-serialized data
-        Vector3fc rowVector,
-        Vector3fc colVector
+        Vector3fc rowVector, // goes along the rows
+        Vector3fc colVector // goes along the cols
 ) {
     public static final Codec<QuadTemplate> CODEC = RecordCodecBuilder.create(
             instance ->
@@ -26,8 +28,9 @@ public record QuadTemplate(
                         ExtraCodecs.VECTOR3F.fieldOf("v0").forGetter(QuadTemplate::v0),
                         ExtraCodecs.VECTOR3F.fieldOf("v1").forGetter(QuadTemplate::v1),
                         ExtraCodecs.VECTOR3F.fieldOf("v2").forGetter(QuadTemplate::v2),
-                        ExtraCodecs.VECTOR3F.fieldOf("v3").forGetter(QuadTemplate::v3)
-                ).apply(instance, (v0, v1, v2, v3) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3)))
+                        ExtraCodecs.VECTOR3F.fieldOf("v3").forGetter(QuadTemplate::v3),
+                        Direction.CODEC.fieldOf("direction").forGetter(QuadTemplate::direction)
+                ).apply(instance, (v0, v1, v2, v3, dir) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3, dir)))
     );
 
     public static final StreamCodec<ByteBuf, QuadTemplate> STREAM_CODEC = StreamCodec.composite(
@@ -35,7 +38,8 @@ public record QuadTemplate(
             ByteBufCodecs.VECTOR3F, QuadTemplate::v1,
             ByteBufCodecs.VECTOR3F, QuadTemplate::v2,
             ByteBufCodecs.VECTOR3F, QuadTemplate::v3,
-            (v0, v1, v2, v3) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3))
+            Direction.STREAM_CODEC, QuadTemplate::direction,
+            (v0, v1, v2, v3, dir) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3, dir))
     );
 
 
@@ -49,13 +53,13 @@ public record QuadTemplate(
     }
 
 
-    public QuadTemplate(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3) {
+    public QuadTemplate(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3, Direction direction) {
         Vector3f colVector = new Vector3f();
         Vector3f rowVector = new Vector3f();
         v1.sub(v0, colVector);
         v3.sub(v0, rowVector);
 
-        this(v0, v1, v2, v3, rowVector, colVector);
+        this(v0, v1, v2, v3, direction, rowVector, colVector);
     }
 
 

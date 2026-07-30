@@ -16,6 +16,7 @@ public record QuadInstance(
         QuadTemplate template,
         int rows,
         int cols,
+        int resolution,
         int[] pixels,
         BitSet emissiveData
 ) {
@@ -25,6 +26,7 @@ public record QuadInstance(
                         QuadTemplate.CODEC.fieldOf("template").forGetter(QuadInstance::template),
                         Codec.INT.fieldOf("rows").forGetter(QuadInstance::rows),
                         Codec.INT.fieldOf("cols").forGetter(QuadInstance::cols),
+                        Codec.INT.fieldOf("resolution").forGetter(QuadInstance::resolution),
                         OddCodecs.INT_ARRAY_CODEC.fieldOf("pixels").forGetter(QuadInstance::pixels),
                         ExtraCodecs.BIT_SET.fieldOf("emissiveData").forGetter(QuadInstance::emissiveData)
                 ).apply(instance, QuadInstance::new)
@@ -34,6 +36,7 @@ public record QuadInstance(
             QuadTemplate.STREAM_CODEC, QuadInstance::template,
             ByteBufCodecs.INT, QuadInstance::rows,
             ByteBufCodecs.INT, QuadInstance::cols,
+            ByteBufCodecs.INT, QuadInstance::resolution,
             OddCodecs.INT_ARRAY_STREAM_CODEC, QuadInstance::pixels,
             OddCodecs.BIT_SET_STREAM_CODEC, QuadInstance::emissiveData,
             QuadInstance::new
@@ -52,7 +55,7 @@ public record QuadInstance(
         int cols = (int) Math.ceil(template.colVector().length() / resPixelLength);
         int numOfPixels = rows * cols;
 
-        this(template, rows, cols, new int[numOfPixels], new BitSet(numOfPixels));
+        this(template, rows, cols, resolution, new int[numOfPixels], new BitSet(numOfPixels));
     }
 
     /**
