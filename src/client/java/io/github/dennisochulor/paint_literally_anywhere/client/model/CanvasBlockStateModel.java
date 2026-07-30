@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class CanvasBlockStateModel extends WrapperBlockStateModel {
@@ -47,7 +48,8 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
     public void emitQuads(QuadEmitter emitter, BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, Predicate<@Nullable Direction> cullTest) {
         super.emitQuads(emitter, level, pos, state, random, cullTest);
 
-        ChunkCanvasData data = ((Level) level).getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+        // yikes
+        ChunkCanvasData data = Objects.requireNonNull(Minecraft.getInstance().level).getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
 
         if (data == null) return;
 

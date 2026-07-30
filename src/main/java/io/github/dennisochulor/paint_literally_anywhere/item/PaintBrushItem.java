@@ -5,6 +5,7 @@ import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
@@ -52,11 +53,12 @@ public class PaintBrushItem extends Item {
         BlockPos blockPos = context.getClickedPos();
         BlockState state = level.getBlockState(blockPos);
         Vec3 hitPos = context.getClickLocation();
+        Direction hitDirection = context.getClickedFace();
         Set<QuadTemplate> quads = ((BlockStateBaseExt) state).pla$quads(level, blockPos);
 
         QuadTemplate clippedQuad = null;
         for (QuadTemplate quad : quads) {
-            if (quad.clip(hitPos)) {
+            if (quad.direction() == hitDirection && quad.clip(hitPos)) {
                 clippedQuad = quad;
                 break;
             }

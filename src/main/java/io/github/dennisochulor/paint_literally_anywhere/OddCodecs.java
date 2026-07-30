@@ -85,7 +85,7 @@ public final class OddCodecs {
     );
 
     public static final StreamCodec<ByteBuf, BitSet> BIT_SET_STREAM_CODEC = StreamCodec.of(
-            (output, value) -> output.writeBytes(value.toByteArray()),
+            (output, value) -> FriendlyByteBuf.writeByteArray(output, value.toByteArray()),
             input -> BitSet.valueOf(FriendlyByteBuf.readByteArray(input))
     );
 }

@@ -8,6 +8,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.BitSet;
@@ -59,21 +60,35 @@ public record QuadInstance(
     }
 
     /**
-     * @return the painted index
+     * @return the painted index, or -1 if the pixel was already in the requested state.
      */
     public int paintServer(Vec3 hitPos, int argb, boolean emissive) {
         Vector3fc localHitPos = QuadTemplate.localize(hitPos);
 
-        float colDistance = template.colVector().distance(localHitPos);
-        float rowDistance = template.rowVector().distance(localHitPos);
-        int col = (int) (colDistance / template.colVector().length() * this.cols);
-        int row = (int) (rowDistance / template.rowVector().length() * this.rows);
+        // Find distance from a point to a line
+        Vector3f v0ToHitPos = new Vector3f();
+        localHitPos.sub(template.v0(), v0ToHitPos);
+
+        Vector3f refVec = new Vector3f();
+        float colLength = template.colVector().length();
+        float rowLength = template.rowVector().length();
+
+        // this is not backwards, e.g. distance from colVector (line at top) would give us the row
+        float rowDistance = template.colVector().cross(v0ToHitPos, refVec).length() / colLength;
+        float colDistance = template.rowVector().cross(v0ToHitPos, refVec).length() / rowLength;
+        int col = (int) (colDistance / colLength * this.cols);
+        int row = (int) (rowDistance / rowLength * this.rows);
 
         int index = index(row, col, this.cols);
-        pixels[index] = argb;
-        emissiveData.set(index, emissive);
 
-        return index;
+        if (pixels[index] == argb && emissive == emissiveData.get(index)) {
+            return -1;
+        }
+        else {
+            pixels[index] = argb;
+            emissiveData.set(index, emissive);
+            return index;
+        }
     }
 
     public void paintClient(int index, int argb, boolean emissive) {

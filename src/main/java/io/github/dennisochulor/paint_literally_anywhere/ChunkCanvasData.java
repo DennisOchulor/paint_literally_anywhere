@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
@@ -26,9 +27,19 @@ public record ChunkCanvasData(
     public static final Codec<ChunkCanvasData> CODEC = RecordCodecBuilder.create(
             instance ->
                     instance.group(
-                            Codec.unboundedMap(BlockPos.CODEC, QuadInstance.CODEC.listOf()
-                                            .xmap(list -> (List<QuadInstance>) new ArrayList<>(list), List::copyOf))
-                                    .fieldOf("blocks").forGetter(ChunkCanvasData::blocks)
+                            Codec.unboundedMap(
+
+                                    // Format: x/y/z - needed because map keys must be strings. AAAAAAAAAAHHHHHHHHHHH!!!
+                                    Codec.STRING.xmap(str -> {
+                                        String[] arr = str.split("/");
+                                        return new BlockPos(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]), Integer.parseInt(arr[2]));
+                                    }, blockPos -> blockPos.getX() + "/" + blockPos.getY() + "/" + blockPos.getZ()),
+
+                                    QuadInstance.CODEC.listOf()
+                                            .xmap(list -> (List<QuadInstance>) new ArrayList<>(list), List::copyOf)
+
+                            ).xmap(map -> (Map<BlockPos, List<QuadInstance>>) new HashMap<>(map), Map::copyOf)
+                            .fieldOf("blocks").forGetter(ChunkCanvasData::blocks)
                     ).apply(instance, ChunkCanvasData::new)
     );
 
@@ -62,11 +73,12 @@ public record ChunkCanvasData(
         }
 
         int indexPainted = quad.paintServer(hitPos, argb, emissive);
+        if (indexPainted != -1) {
+            chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
 
-        chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
-
-        var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, indexPainted, argb, emissive);
-        PlayerLookup.tracking((ServerLevel) chunk.getLevel(), chunk.getPos()).forEach(player -> ServerPlayNetworking.send(player, updatePacket));
+            var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, indexPainted, argb, emissive);
+            PlayerLookup.tracking((ServerLevel) chunk.getLevel(), chunk.getPos()).forEach(player -> ServerPlayNetworking.send(player, updatePacket));
+        }
     }
 
     public static void paintClient(LevelChunk chunk, ClientboundChunkCanvasDataUpdatePacket packet) {
@@ -88,6 +100,8 @@ public record ChunkCanvasData(
         }
 
         quad.paintClient(packet.index(), packet.argb(), packet.emissive());
+        BlockState state = chunk.getBlockState(packet.pos());
+        chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }
 
     public static void removeServer(LevelChunk chunk, BlockPos pos, BlockState newState) {
@@ -170,7 +184,7 @@ public record ChunkCanvasData(
             BlockPos pos = entry.getKey();
             List<QuadInstance> instances = entry.getValue();
 
-            BlockState state = chunk.getLevel().getBlockState(pos);
+            BlockState state = chunk.getBlockState(pos);
             Set<QuadTemplate> templates = ((BlockStateBaseExt) state).pla$quads(chunk.getLevel(), pos);
 
             instances.removeIf(quadInstance -> !templates.contains(quadInstance.template()));
