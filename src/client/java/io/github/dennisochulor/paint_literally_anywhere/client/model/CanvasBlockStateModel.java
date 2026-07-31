@@ -6,17 +6,18 @@ import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadInstance;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
+import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadAtlas;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
@@ -24,11 +25,25 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 import java.util.BitSet;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 
 public class CanvasBlockStateModel extends WrapperBlockStateModel {
+    private static final float OFFSET = 0.0001F;
+    private static final EnumMap<Direction, Vector3fc> OFFSETS = Util.make(() -> {
+        var map = new EnumMap<Direction, Vector3fc>(Direction.class);
+
+        map.put(Direction.UP, new Vector3f(0, OFFSET, 0));
+        map.put(Direction.DOWN, new Vector3f(0, -OFFSET, 0));
+        map.put(Direction.NORTH, new Vector3f(0, 0, -OFFSET));
+        map.put(Direction.SOUTH, new Vector3f(0, 0 ,OFFSET));
+        map.put(Direction.EAST, new Vector3f(OFFSET, 0, 0));
+        map.put(Direction.WEST, new Vector3f(-OFFSET, 0, 0));
+
+        return map;
+    });
     private static @Nullable TextureAtlasSprite SPRITE;
 
     public CanvasBlockStateModel(BlockStateModel wrappedModel) {
@@ -38,7 +53,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
     private static TextureAtlasSprite sprite() {
         if (SPRITE == null) {
             SPRITE = Minecraft.getInstance().getAtlasManager()
-                    .get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, PLAMod.id("block/canvas")));
+                    .get(new SpriteId(QuadAtlas.BLOCK.getTextureLocation(), PLAMod.id("block/canvas")));
         }
 
         return SPRITE;
@@ -89,6 +104,10 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                 int argb = pixels[i];
                 boolean emissive = emissiveData.get(i);
 
+                if (argb == 0) {
+                    continue;
+                }
+
                 emitter.color(argb, argb, argb, argb)
                         .emissive(emissive)
                         .lightmap(lightCoords, lightCoords, lightCoords, lightCoords)
@@ -98,14 +117,17 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                         .uv(2, sprite().getU1(), sprite().getV1())
                         .uv(3, sprite().getU1(), sprite().getV0());
 
+                // set to template v0 first and offset to prevent z-fighting
+                refVertex.set(template.v0()).add(OFFSETS.get(direction));
+
                 // v0
-                template.colVector().add(colUnitVec.mul(col, refScalerVec), refVertex);
+                refVertex.add(colUnitVec.mul(col, refScalerVec));
                 refVertex.add(rowUnitVec.mul(row, refScalerVec));
                 emitter.pos(0, refVertex);
 
                 // v1 - step col
                 refVertex.add(colUnitVec);
-                emitter.pos(direction == Direction.UP ? 3 : 1, refVertex);
+                emitter.pos(1, refVertex);
 
                 // v2 - step row/col
                 refVertex.add(rowUnitVec);
@@ -113,7 +135,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
 
                 // v3 - step row
                 refVertex.sub(colUnitVec);
-                emitter.pos(direction == Direction.UP ? 1 : 3, refVertex);
+                emitter.pos(3, refVertex);
 
                 emitter.emit();
             }
