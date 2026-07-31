@@ -169,6 +169,9 @@ public record ChunkCanvasData(
         if (blocks.isEmpty()) {
             chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
         }
+
+        BlockState state = chunk.getBlockState(packet.pos());
+        chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }
 
     public static void validateOnChunkLoad(LevelChunk chunk) {
