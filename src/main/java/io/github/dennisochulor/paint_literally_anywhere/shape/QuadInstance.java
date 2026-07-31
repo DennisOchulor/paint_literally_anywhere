@@ -7,7 +7,6 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -62,9 +61,7 @@ public record QuadInstance(
     /**
      * @return the painted index, or -1 if the pixel was already in the requested state.
      */
-    public int paintServer(Vec3 hitPos, int argb, boolean emissive) {
-        Vector3fc localHitPos = template.localize(hitPos);
-
+    public int paintServer(Vector3fc localHitPos, int argb, boolean emissive) {
         // Find distance from a point to a line
         Vector3f v0ToHitPos = new Vector3f();
         localHitPos.sub(template.v0(), v0ToHitPos);

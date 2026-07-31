@@ -17,7 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3fc;
 
 import java.util.*;
 
@@ -54,7 +54,7 @@ public record ChunkCanvasData(
 
 
 
-    public static void paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vec3 hitPos, int argb, boolean emissive) {
+    public static void paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos, int argb, boolean emissive) {
         if (chunk.getLevel().isClientSide()) throw new IllegalStateException("paintServer called on client!");
 
         var blocks = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>())).blocks();
@@ -72,7 +72,7 @@ public record ChunkCanvasData(
             quads.add(quad);
         }
 
-        int indexPainted = quad.paintServer(hitPos, argb, emissive);
+        int indexPainted = quad.paintServer(localHitPos, argb, emissive);
         if (indexPainted != -1) {
             chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
 

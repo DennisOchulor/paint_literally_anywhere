@@ -7,7 +7,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
@@ -43,20 +42,6 @@ public record QuadTemplate(
     );
 
 
-    public Vector3f localize(Vec3 vec) {
-        float x = (float) Math.abs((Math.abs(vec.x()) - Math.abs(Math.floor(vec.x()))));
-        float y = (float) Math.abs((Math.abs(vec.y()) - Math.abs(Math.floor(vec.y()))));
-        float z = (float) Math.abs((Math.abs(vec.z()) - Math.abs(Math.floor(vec.z()))));
-
-        // Account for both most +ve and -ve of each axis being 0
-        if (x == 0 && direction == Direction.EAST) x = 1;
-        if (y == 0 && direction == Direction.UP) y = 1;
-        if (z == 0 && direction == Direction.SOUTH) z = 1;
-
-        return new Vector3f(x, y, z);
-    }
-
-
     public QuadTemplate(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3, Direction direction) {
         Vector3f colVector = new Vector3f();
         Vector3f rowVector = new Vector3f();
@@ -67,10 +52,8 @@ public record QuadTemplate(
     }
 
 
-    public boolean clip(Vec3 hitPos) {
-        Vector3fc localHitPos = localize(hitPos);
-
-        // check if hitPos is on the quad's plane
+    public boolean clip(Vector3fc localHitPos) {
+        // check if localHitPos is on the quad's plane
         Vector3fc planeNormal = colVector.cross(v2.sub(v0, new Vector3f()), new Vector3f());
         float distance = localHitPos.sub(v0, new Vector3f()).dot(planeNormal);
 
