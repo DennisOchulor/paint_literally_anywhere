@@ -70,21 +70,30 @@ public record QuadTemplate(
     public boolean clip(Vec3 hitPos) {
         Vector3fc localHitPos = localize(hitPos);
 
-        // 2D cross product of each directed edge from A to B, and hit point P
-        float[] products = new float[4];
-        products[0] = (v1.x() - v0.x()) * (localHitPos.y() - v0.y()) - (v1.y() - v0.y()) * (localHitPos.x() - v0.x());
-        products[1] = (v2.x() - v1.x()) * (localHitPos.y() - v1.y()) - (v2.y() - v1.y()) * (localHitPos.x() - v1.x());
-        products[2] = (v3.x() - v2.x()) * (localHitPos.y() - v2.y()) - (v3.y() - v2.y()) * (localHitPos.x() - v2.x());
-        products[3] = (v0.x() - v3.x()) * (localHitPos.y() - v3.y()) - (v0.y() - v3.y()) * (localHitPos.x() - v3.x());
+        // check if hitPos is on the quad's plane
+        Vector3fc planeNormal = colVector.cross(v2.sub(v0, new Vector3f()), new Vector3f());
+        float distance = localHitPos.sub(v0, new Vector3f()).dot(planeNormal);
 
-        boolean positive = products[0] > 0;
-        for (int i = 0; i < products.length; i++) {
-            float p = products[i];
-            if (p == 0) return true;
-            if (p > 0 && !positive) return false;
-            if (p < 0 && positive) return false;
+        if (Math.abs(distance) > 0.0001F) {
+            return false;
         }
 
-        return true;
+        //noinspection UnnecessaryLocalVariable
+        Vector3fc e1 = colVector;
+        Vector3fc e2 = v2.sub(v1, new Vector3f());
+        Vector3fc e3 = v3.sub(v2, new Vector3f());
+        Vector3fc e4 = v0.sub(v3, new Vector3f());
+
+        Vector3fc v0ToHitPos = localHitPos.sub(v0, new Vector3f());
+        Vector3fc v1ToHitPos = localHitPos.sub(v1, new Vector3f());
+        Vector3fc v2ToHitPos = localHitPos.sub(v2, new Vector3f());
+        Vector3fc v3ToHitPos = localHitPos.sub(v3, new Vector3f());
+
+        float dot0 = e1.cross(v0ToHitPos, new Vector3f()).dot(planeNormal);
+        float dot1 = e2.cross(v1ToHitPos, new Vector3f()).dot(planeNormal);
+        float dot2 = e3.cross(v2ToHitPos, new Vector3f()).dot(planeNormal);
+        float dot3 = e4.cross(v3ToHitPos, new Vector3f()).dot(planeNormal);
+
+        return dot0 >= 0 && dot1 >= 0 && dot2 >= 0 && dot3 >= 0;
     }
 }
