@@ -41,13 +41,13 @@ public class PaintBrushItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getLevel().isClientSide()) return InteractionResult.PASS;
+        if (context.getLevel().isClientSide()) return InteractionResult.FAIL;
 
         ItemStack itemStack = context.getItemInHand();
         Integer argb = itemStack.get(ModComponents.RGB_COLOR);
         boolean emissive = itemStack.has(ModComponents.EMISSIVE);
 
-        if (argb == null) return InteractionResult.PASS;
+        if (argb == null) return InteractionResult.FAIL;
 
         ServerLevel level = (ServerLevel) context.getLevel();
         BlockPos blockPos = context.getClickedPos();
@@ -66,7 +66,7 @@ public class PaintBrushItem extends Item {
 
         if (clippedQuad == null) {
             PLAMod.LOGGER.warn("Block {} at {}/{} called useOn but somehow no quad was clipped!", state, blockPos, hitPos);
-            return InteractionResult.PASS;
+            return InteractionResult.FAIL;
         }
 
         ChunkCanvasData.paintServer(level.getChunkAt(blockPos), clippedQuad, blockPos, hitPos, argb, emissive);

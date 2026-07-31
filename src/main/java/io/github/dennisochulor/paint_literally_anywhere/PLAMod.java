@@ -7,8 +7,10 @@ import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.network.ModNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.fabric.api.event.player.BlockEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.context.UseOnContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -36,6 +38,12 @@ public class PLAMod implements ModInitializer {
 
         ServerChunkEvents.CHUNK_LOAD.register((_, chunk, generated) -> {
             if (!generated) ChunkCanvasData.validateOnChunkLoad(chunk);
+        });
+
+        // Force all right click interactions (sneak or not) with paint brush to attempt painting instead of interacting with block
+        BlockEvents.USE_ITEM_ON.register((itemStack, _, _, _, player, hand, blockHitResult) -> {
+            if (itemStack.is(ModItems.PAINT_BRUSH)) return ModItems.PAINT_BRUSH.useOn(new UseOnContext(player, hand, blockHitResult));
+            else return null;
         });
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
