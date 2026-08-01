@@ -7,18 +7,22 @@ Client Item
         - true: paint_brush_tip (with tint)
         - false: empty
 
+---
 
-BlockStateModel.collectParts()
-BlockStateModelPart.getQuads()
+**ToDo (features):**
+- Alpha channel
+- Generate accurate QuadTemplates on client
+  - Write to JSON files
+  - Deal with vanilla hitPos still using inaccurate VoxelShape
+- Config (resolution)
+- Somehow transfer pixels between QuadTemplates that are just rotated (e.g. flipping trapdoors)
 
-QuadTemplate (cached):
-- 4 Vector3fc
-- Direction
-- rows
-- cols
+---
 
-QuadInstance: flat int[] for pixels + BitSet for emissive??
-
-Chunk data attachment: Map<BlockPos, ???>
-
-wait wtf how server will access model data in the first place oh shiiiitttttttttttt!!?!?!
+**ToDo (bugs):**
+- Fix skull block culling issues
+- rightClickDelay packet spam
+- QuadTemplate#clip is still sometimes unreliable
+    - Lectern back top face
+    - Composter, hopper, cauldron inner faces (hitDirection is UP for some reason...)
+    - Removing the direction check optimization can lead to wrong quad being clipped??
