@@ -7,6 +7,7 @@ import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -23,7 +24,7 @@ public record RGBColorTintSource(int defaultColor) implements ItemTintSource {
     @Override
     public int calculate(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity owner) {
         Integer rgb = itemStack.getComponents().get(ModComponents.ARGB_COLOR);
-        return rgb != null ? rgb : defaultColor;
+        return rgb != null ? ARGB.opaque(rgb) : defaultColor;
     }
 
     @Override
