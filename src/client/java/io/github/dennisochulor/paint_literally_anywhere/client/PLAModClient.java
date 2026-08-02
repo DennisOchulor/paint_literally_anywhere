@@ -39,7 +39,7 @@ public class PLAModClient implements ClientModInitializer {
             if (itemStack.getItem() != ModItems.PAINT_BRUSH) return null;
             if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return null;
 
-            int argb = itemStack.getOrDefault(ModComponents.ARGB_COLOR, Color.YELLOW.getRGB());
+            int argb = itemStack.getOrDefault(ModComponents.ARGB_COLOR, Color.RED.getRGB());
             boolean emissive = itemStack.has(ModComponents.EMISSIVE);
 
             Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), emissive));

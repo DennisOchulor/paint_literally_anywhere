@@ -16,7 +16,7 @@ import java.awt.Color;
 import java.util.*;
 
 public class PaletteMenu extends ItemCombinerMenu {
-    public static final Color STARTING_COLOR = Color.YELLOW;
+    public static final Color STARTING_COLOR = Color.RED;
 
     public static final int INVENTORY_START_X = 8;
     public static final int INVENTORY_START_Y = 160;
