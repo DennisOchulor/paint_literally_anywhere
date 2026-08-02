@@ -10,7 +10,6 @@ Client Item
 ---
 
 **ToDo (features):**
-- Alpha channel
 - Generate accurate QuadTemplates on client
   - Write to JSON files
   - Deal with vanilla hitPos still using inaccurate VoxelShape
