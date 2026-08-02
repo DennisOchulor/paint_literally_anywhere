@@ -4,6 +4,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 
 import java.awt.Color;
@@ -22,11 +23,17 @@ class ColorPreviewWidget extends AbstractWidget {
 
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        // Solid color
-        graphics.fill(getX(), getY(), getX() + width, getY() + height, argb);
+        int x = getX();
+        int y = getY();
+
+        // The transparent texture for the background
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AlphaSliderWidget.TRANSPARENT_TEXTURE, x, y, width, height);
+
+        // argb color
+        graphics.fill(x, y, x + width, y + height, argb);
 
         // Outline
-        graphics.outline(getX(), getY(), width, height, Color.WHITE.getRGB());
+        graphics.outline(x, y, width, height, Color.WHITE.getRGB());
     }
 
     @Override

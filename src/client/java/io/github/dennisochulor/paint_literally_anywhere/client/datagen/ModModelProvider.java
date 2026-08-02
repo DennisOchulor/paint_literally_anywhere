@@ -83,7 +83,7 @@ public class ModModelProvider extends FabricModelProvider {
                                 paintBrushStalk
                         ),
                         ItemModelUtils.conditional(
-                                ItemModelUtils.hasComponent(ModComponents.RGB_COLOR),
+                                ItemModelUtils.hasComponent(ModComponents.ARGB_COLOR),
                                 paintBrushPaint,
                                 new EmptyModel.Unbaked()
                         )

@@ -45,8 +45,8 @@ public class PaletteScreen extends AbstractContainerScreen<PaletteMenu> {
             @Override
             public void slotChanged(AbstractContainerMenu container, int slotIndex, ItemStack itemStack) {
                 if (slotIndex == PaletteMenu.INPUT_SLOT_INDEX && !itemStack.isEmpty()) {
-                    Integer color = itemStack.get(ModComponents.RGB_COLOR);
-                    if (color != null) updateRequestedColor(new Color(color), true);
+                    Integer color = itemStack.get(ModComponents.ARGB_COLOR);
+                    if (color != null) updateRequestedColor(new Color(color, true), true);
                 }
             }
 

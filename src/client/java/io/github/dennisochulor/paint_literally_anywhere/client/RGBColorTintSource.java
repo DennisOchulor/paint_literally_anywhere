@@ -22,7 +22,7 @@ public record RGBColorTintSource(int defaultColor) implements ItemTintSource {
 
     @Override
     public int calculate(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity owner) {
-        Integer rgb = itemStack.getComponents().get(ModComponents.RGB_COLOR);
+        Integer rgb = itemStack.getComponents().get(ModComponents.ARGB_COLOR);
         return rgb != null ? rgb : defaultColor;
     }
 

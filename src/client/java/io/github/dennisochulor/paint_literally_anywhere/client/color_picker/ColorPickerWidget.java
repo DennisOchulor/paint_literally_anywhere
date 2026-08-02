@@ -22,6 +22,7 @@ public class ColorPickerWidget extends AbstractContainerWidget {
 
     private final ColorPreviewWidget previewWidget;
     private final ColorCanvasWidget canvasWidget;
+    private final AlphaSliderWidget alphaSliderWidget;
     private final HueSliderWidget hueSliderWidget;
     private final LinearLayout root;
     private final ColorChangeListener listener;
@@ -39,12 +40,18 @@ public class ColorPickerWidget extends AbstractContainerWidget {
 
         hueSliderWidget = new HueSliderWidget(hsl[0]);
         canvasWidget = new ColorCanvasWidget(hsl[0], hsl[1], hsl[2]);
+        alphaSliderWidget = new AlphaSliderWidget(color);
         previewWidget = new ColorPreviewWidget(color.getRGB());
+
+        LinearLayout secondRow = LinearLayout.horizontal().spacing(15);
+        secondRow.defaultCellSetting().alignHorizontallyCenter();
+        secondRow.addChild(canvasWidget);
+        secondRow.addChild(alphaSliderWidget);
 
         root = LinearLayout.vertical().spacing(10);
         root.defaultCellSetting().alignHorizontallyCenter();
         root.addChild(previewWidget);
-        root.addChild(canvasWidget);
+        root.addChild(secondRow);
         root.addChild(hueSliderWidget);
     }
 
@@ -61,13 +68,16 @@ public class ColorPickerWidget extends AbstractContainerWidget {
         canvasWidget.setSaturation(hsl[1]);
         canvasWidget.setLight(hsl[2]);
         canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
+        alphaSliderWidget.setAlpha(color.getAlpha() / 255.0F);
+        alphaSliderWidget.setRgb(color.getRGB());
         previewWidget.setArgb(color.getRGB());
 
         listener.onColorChange(color, false);
     }
 
-    private void updateColorFromHSL() {
+    private void updateColorFromWidgets() {
         Color newColor = Color.getHSBColor(hueSliderWidget.getHue(), canvasWidget.getSaturation(), canvasWidget.getLight());
+        newColor = new Color(newColor.getRed(), newColor.getGreen(), newColor.getBlue(), alphaSliderWidget.getSliderAlphaInt());
 
         // for certain sat/light values, newColor == color regardless of hue value
         canvasWidget.updateRefHueValue(hueSliderWidget.getHue());
@@ -75,24 +85,29 @@ public class ColorPickerWidget extends AbstractContainerWidget {
         if (!color.equals(newColor)) {
             color = newColor;
             previewWidget.setArgb(color.getRGB());
+            alphaSliderWidget.setRgb(color.getRGB());
             listener.onColorChange(color, true);
         }
     }
 
     @Override
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        updateColorFromHSL();
+        updateColorFromWidgets();
 
         int x = getX();
         int y = getY();
 
         int heightNoSpacing = height - 20;
+        int secondRowWidthNoSpacing = width - 20;
 
         previewWidget.setWidth(width);
         previewWidget.setHeight((int) (heightNoSpacing * 0.2));
 
-        canvasWidget.setWidth(width);
+        canvasWidget.setWidth((int) (secondRowWidthNoSpacing * 0.95));
         canvasWidget.setHeight((int) (heightNoSpacing * 0.7));
+
+        alphaSliderWidget.setWidth((int) (secondRowWidthNoSpacing * 0.05));
+        alphaSliderWidget.setHeight((int) (heightNoSpacing * 0.7));
 
         hueSliderWidget.setWidth(width);
         hueSliderWidget.setHeight((int) (heightNoSpacing * 0.1));
@@ -105,8 +120,8 @@ public class ColorPickerWidget extends AbstractContainerWidget {
     @Override
     protected void updateWidgetNarration(NarrationElementOutput output) {
         output.add(NarratedElementType.TITLE, Component.literal("Color picker widget"));
-        output.add(NarratedElementType.USAGE, Component.literal("Current selected color: red %d green %d blue %d"
-                .formatted(color.getRed(), color.getGreen(), color.getBlue())));
+        output.add(NarratedElementType.USAGE, Component.literal("Current selected color: red %d green %d blue %d alpha %d"
+                .formatted(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())));
     }
 
     @Override
@@ -116,6 +131,6 @@ public class ColorPickerWidget extends AbstractContainerWidget {
 
     @Override
     public List<? extends GuiEventListener> children() {
-        return List.of(previewWidget, canvasWidget, hueSliderWidget);
+        return List.of(previewWidget, canvasWidget, alphaSliderWidget, hueSliderWidget);
     }
 }

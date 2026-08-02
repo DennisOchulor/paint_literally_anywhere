@@ -31,10 +31,10 @@ public class PLAModClient implements ClientModInitializer {
             if (itemStack.getItem() != ModItems.PAINT_BRUSH) return null;
             if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return null;
 
-            int rgb = itemStack.getOrDefault(ModComponents.RGB_COLOR, Color.YELLOW.getRGB());
+            int argb = itemStack.getOrDefault(ModComponents.ARGB_COLOR, Color.YELLOW.getRGB());
             boolean emissive = itemStack.has(ModComponents.EMISSIVE);
 
-            Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(rgb), emissive));
+            Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), emissive));
             return InteractionResult.CONSUME;
         });
     }

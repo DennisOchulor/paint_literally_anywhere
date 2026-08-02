@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
@@ -112,6 +113,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                         .emissive(emissive)
                         .lightmap(lightCoords, lightCoords, lightCoords, lightCoords)
                         .cullFace(direction)
+                        .chunkLayer(ChunkSectionLayer.TRANSLUCENT)
                         .uv(0, sprite().getU0(), sprite().getV0())
                         .uv(1, sprite().getU0(), sprite().getV1())
                         .uv(2, sprite().getU1(), sprite().getV1())

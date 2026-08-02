@@ -29,7 +29,7 @@ public class PaintBrushItem extends Item {
 
     @Override
     public Component getName(ItemStack itemStack) {
-        int rgb = itemStack.getComponents().getOrDefault(ModComponents.RGB_COLOR, Color.WHITE.getRGB());
+        int rgb = itemStack.getComponents().getOrDefault(ModComponents.ARGB_COLOR, Color.WHITE.getRGB());
         boolean emissive = itemStack.has(ModComponents.EMISSIVE);
         return Component.translatable(
                 emissive ? "item.paint_literally_anywhere.paint_brush.emissive" : "item.paint_literally_anywhere.paint_brush")
@@ -46,7 +46,7 @@ public class PaintBrushItem extends Item {
         if (context.getLevel().isClientSide()) return InteractionResult.FAIL;
 
         ItemStack itemStack = context.getItemInHand();
-        Integer argb = itemStack.get(ModComponents.RGB_COLOR);
+        Integer argb = itemStack.get(ModComponents.ARGB_COLOR);
         boolean emissive = itemStack.has(ModComponents.EMISSIVE);
 
         if (argb == null) return InteractionResult.FAIL;

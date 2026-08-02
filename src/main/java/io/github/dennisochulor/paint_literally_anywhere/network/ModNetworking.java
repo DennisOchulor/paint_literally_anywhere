@@ -32,7 +32,7 @@ public final class ModNetworking {
                 return;
             }
 
-            itemStack.set(ModComponents.RGB_COLOR, payload.rgb());
+            itemStack.set(ModComponents.ARGB_COLOR, payload.argb());
 
             if (payload.emissive()) itemStack.set(ModComponents.EMISSIVE, Unit.INSTANCE);
             else itemStack.remove(ModComponents.EMISSIVE);
@@ -40,7 +40,7 @@ public final class ModNetworking {
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaletteMenuUpdatePacket.TYPE, ((payload, context) -> {
             if (context.player().containerMenu instanceof PaletteMenu menu) {
-                menu.setRequestedColor(new Color(payload.rgb()));
+                menu.setRequestedColor(new Color(payload.argb(), true));
             }
         }));
     }

@@ -8,16 +8,15 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Unit;
 
 public final class ModComponents {
     private ModComponents() {}
 
-    public static final DataComponentType<Integer> RGB_COLOR = register(
-            "rgb_color",
-            ExtraCodecs.RGB_COLOR_CODEC,
-            ByteBufCodecs.RGB_COLOR
+    public static final DataComponentType<Integer> ARGB_COLOR = register(
+            "argb_color",
+            Codec.INT,
+            ByteBufCodecs.INT
     );
 
     public static final DataComponentType<Unit> EMISSIVE = register(
