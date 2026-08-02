@@ -23,8 +23,9 @@ public record RGBColorTintSource(int defaultColor) implements ItemTintSource {
 
     @Override
     public int calculate(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity owner) {
-        Integer rgb = itemStack.getComponents().get(ModComponents.ARGB_COLOR);
-        return rgb != null ? ARGB.opaque(rgb) : defaultColor;
+        Integer argb = itemStack.getComponents().get(ModComponents.ARGB_COLOR);
+        // make it opaque as opacity is handled by the model itself (see datagen)
+        return argb != null ? ARGB.opaque(argb) : defaultColor;
     }
 
     @Override
