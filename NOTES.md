@@ -21,6 +21,7 @@ Client Item
 **ToDo (bugs):**
 - Fix skull block culling issues
 - rightClickDelay packet spam
+- culling for non-full blocks
 - QuadTemplate#clip is still sometimes unreliable
     - Lectern back top face
     - Composter, hopper, cauldron inner faces (hitDirection is UP for some reason...)
