@@ -11,6 +11,8 @@
     "requireAnnotations": true
   },
   "mixins": [
-    "MinecraftMixin"
+    "BlockStateModelSetAccessor",
+    "MinecraftMixin",
+    "ModelManagerMixin"
   ]
 }

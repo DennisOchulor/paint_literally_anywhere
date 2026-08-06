@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockState
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadAtlas;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
@@ -28,7 +29,6 @@ import org.jspecify.annotations.Nullable;
 import java.util.BitSet;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public class CanvasBlockStateModel extends WrapperBlockStateModel {
@@ -64,14 +64,24 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
     public void emitQuads(QuadEmitter emitter, BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random, Predicate<@Nullable Direction> cullTest) {
         super.emitQuads(emitter, level, pos, state, random, cullTest);
 
-        // yikes
-        ChunkCanvasData data = Objects.requireNonNull(Minecraft.getInstance().level).getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+        ClientLevel clientLevel = Minecraft.getInstance().level;
 
-        if (data == null) return;
+        if (clientLevel == null) {
+            return;
+        }
+
+        // yikes
+        ChunkCanvasData data = clientLevel.getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+
+        if (data == null) {
+            return;
+        }
 
         List<QuadInstance> instances = data.blocks().get(pos);
 
-        if (instances == null || instances.isEmpty()) return;
+        if (instances == null || instances.isEmpty()) {
+            return;
+        }
 
         instances.forEach(instance -> render(emitter, level, pos, instance));
     }

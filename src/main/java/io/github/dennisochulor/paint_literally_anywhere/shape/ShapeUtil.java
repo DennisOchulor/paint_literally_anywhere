@@ -1,6 +1,8 @@
 package io.github.dennisochulor.paint_literally_anywhere.shape;
 
+import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParseResult;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Vector3f;
@@ -13,8 +15,28 @@ public final class ShapeUtil {
 
     private static final Map<QuadTemplate, QuadTemplate> TEMPLATE_CACHE = new HashMap<>();
     private static final Set<QuadTemplate> BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
+    private static ShapeFileParseResult parseResult = ShapeFileParseResult.EMPTY;
 
-    public static Set<QuadTemplate> voxelShapeToQuadTemplates(VoxelShape voxelShape) {
+    public static Set<QuadTemplate> getQuadTemplates(BlockState state, VoxelShape shape) {
+        if (parseResult.get(state) instanceof Set<QuadTemplate> templates) {
+            return templates;
+        }
+
+        return voxelShapeToQuadTemplates(shape);
+    }
+
+    public static void setParseResult(ShapeFileParseResult result) {
+        parseResult = result;
+    }
+
+    /**
+     * @return the cached QuadTemplate, which may be the one passed in or a previously cached one.
+     */
+    public static QuadTemplate cache(QuadTemplate template) {
+        return TEMPLATE_CACHE.computeIfAbsent(template, _ -> template);
+    }
+
+    private static Set<QuadTemplate> voxelShapeToQuadTemplates(VoxelShape voxelShape) {
         if (voxelShape == Shapes.block() && BLOCK_TEMPLATES != null) {
             return BLOCK_TEMPLATES;
         }
@@ -41,33 +63,14 @@ public final class ShapeUtil {
             Vector3fc v7 = new Vector3f(xMin, yMax, zMax);
 
             // define 6 faces from those 8 vertices
-            quads.add(new QuadTemplate(v4, v5, v6, v7, Direction.SOUTH));
-            quads.add(new QuadTemplate(v1, v0, v3, v2, Direction.NORTH));
-            quads.add(new QuadTemplate(v0, v4, v7, v3, Direction.WEST));
-            quads.add(new QuadTemplate(v5, v1, v2, v6, Direction.EAST));
-            quads.add(new QuadTemplate(v3, v7, v6, v2, Direction.UP));
-            quads.add(new QuadTemplate(v0, v1, v5, v4, Direction.DOWN));
+            quads.add(QuadTemplate.create(v4, v5, v6, v7, Direction.SOUTH));
+            quads.add(QuadTemplate.create(v1, v0, v3, v2, Direction.NORTH));
+            quads.add(QuadTemplate.create(v0, v4, v7, v3, Direction.WEST));
+            quads.add(QuadTemplate.create(v5, v1, v2, v6, Direction.EAST));
+            quads.add(QuadTemplate.create(v3, v7, v6, v2, Direction.UP));
+            quads.add(QuadTemplate.create(v0, v1, v5, v4, Direction.DOWN));
         });
 
-        for (int i = 0; i < quads.size(); i++) {
-            QuadTemplate newTemplate = quads.get(i);
-            QuadTemplate cached = TEMPLATE_CACHE.get(newTemplate);
-
-            if (cached != null) {
-                quads.set(i, cached);
-            }
-            else {
-                TEMPLATE_CACHE.put(newTemplate, newTemplate);
-            }
-        }
-
         return Set.copyOf(quads);
-    }
-
-    /**
-     * @return the cached QuadTemplate, which may be the one passed in or a previously cached one.
-     */
-    public static QuadTemplate cache(QuadTemplate template) {
-        return TEMPLATE_CACHE.computeIfAbsent(template, _ -> template);
     }
 }

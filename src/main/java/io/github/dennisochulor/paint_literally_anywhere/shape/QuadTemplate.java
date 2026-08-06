@@ -29,7 +29,7 @@ public record QuadTemplate(
                         ExtraCodecs.VECTOR3F.fieldOf("v2").forGetter(QuadTemplate::v2),
                         ExtraCodecs.VECTOR3F.fieldOf("v3").forGetter(QuadTemplate::v3),
                         Direction.CODEC.fieldOf("direction").forGetter(QuadTemplate::direction)
-                ).apply(instance, (v0, v1, v2, v3, dir) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3, dir)))
+                ).apply(instance, QuadTemplate::create)
     );
 
     public static final StreamCodec<ByteBuf, QuadTemplate> STREAM_CODEC = StreamCodec.composite(
@@ -38,17 +38,21 @@ public record QuadTemplate(
             ByteBufCodecs.VECTOR3F, QuadTemplate::v2,
             ByteBufCodecs.VECTOR3F, QuadTemplate::v3,
             Direction.STREAM_CODEC, QuadTemplate::direction,
-            (v0, v1, v2, v3, dir) -> ShapeUtil.cache(new QuadTemplate(v0, v1, v2, v3, dir))
+            QuadTemplate::create
     );
 
 
-    public QuadTemplate(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3, Direction direction) {
+    /**
+     * @return the cached {@link QuadTemplate}, always prefer this method instead of using the constructor directly.
+     */
+    public static QuadTemplate create(Vector3fc v0, Vector3fc v1, Vector3fc v2, Vector3fc v3, Direction direction) {
         Vector3f colVector = new Vector3f();
         Vector3f rowVector = new Vector3f();
         v1.sub(v0, colVector);
         v3.sub(v0, rowVector);
 
-        this(v0, v1, v2, v3, direction, rowVector, colVector);
+        QuadTemplate template = new QuadTemplate(v0, v1, v2, v3, direction, rowVector, colVector);
+        return ShapeUtil.cache(template);
     }
 
 

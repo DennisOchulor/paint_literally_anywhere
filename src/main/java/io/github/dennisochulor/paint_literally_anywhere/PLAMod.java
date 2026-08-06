@@ -5,8 +5,11 @@ import io.github.dennisochulor.paint_literally_anywhere.block.ModBlocks;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.network.ModNetworking;
+import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParser;
+import io.github.dennisochulor.paint_literally_anywhere.shape.ShapeUtil;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.player.BlockEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
@@ -44,6 +47,12 @@ public class PLAMod implements ModInitializer {
         BlockEvents.USE_ITEM_ON.register((itemStack, _, _, _, player, hand, blockHitResult) -> {
             if (itemStack.is(ModItems.PAINT_BRUSH)) return ModItems.PAINT_BRUSH.useOn(new UseOnContext(player, hand, blockHitResult));
             else return null;
+        });
+
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            if (server.isDedicatedServer()) {
+                ShapeUtil.setParseResult(ShapeFileParser.parse(server.getServerDirectory()));
+            }
         });
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {

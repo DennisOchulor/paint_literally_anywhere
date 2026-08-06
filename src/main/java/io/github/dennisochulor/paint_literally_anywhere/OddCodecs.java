@@ -3,25 +3,17 @@ package io.github.dennisochulor.paint_literally_anywhere;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
 
+import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
 public final class OddCodecs {
     private OddCodecs() {}
 
     public static final Codec<int[]> INT_ARRAY_CODEC = Codec.of(
-            /*
             new Encoder<>() {
                 @Override
                 public <T> DataResult<T> encode(int[] input, DynamicOps<T> ops, T prefix) {
@@ -31,37 +23,13 @@ public final class OddCodecs {
             new Decoder<>() {
                 @Override
                 public <T> DataResult<Pair<int[], T>> decode(DynamicOps<T> ops, T input) {
-                    DataResult<IntStream> intStreamDataResult = ops.getIntStream(input);
+                    DataResult<IntStream> dataResult = ops.getIntStream(input);
 
-                    if (intStreamDataResult.isSuccess()) {
-                        return DataResult.success(Pair.of(intStreamDataResult.getOrThrow().toArray(), ops.empty()));
+                    if (dataResult.isSuccess()) {
+                        return DataResult.success(Pair.of(dataResult.getOrThrow().toArray(), ops.empty()));
                     }
                     else {
-                        return DataResult.error(() -> "int array not present!");
-                    }
-                }
-            }
-             */
-
-            new Encoder<>() {
-                @Override
-                public <T> DataResult<T> encode(int[] input, DynamicOps<T> ops, T prefix) {
-                    try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(() -> "QuadInstance", PLAMod.LOGGER)) {
-                        TagValueOutput valueOutput = TagValueOutput.createWithoutContext(reporter);
-                        valueOutput.putIntArray("int_array", input);
-                        return DataResult.success(NbtOps.INSTANCE.convertTo(ops, valueOutput.buildResult()));
-                    }
-                }
-            },
-            new Decoder<>() {
-                @Override
-                public <T> DataResult<Pair<int[], T>> decode(DynamicOps<T> ops, T input) {
-                    try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(() -> "QuadInstance", PLAMod.LOGGER)) {
-                        ValueInput valueInput = TagValueInput.create(reporter, HolderLookup.Provider.create(Stream.empty()), (CompoundTag) ops.convertTo(NbtOps.INSTANCE, input));
-                        Optional<int[]> optionalInts = valueInput.getIntArray("int_array");
-
-                        if (optionalInts.isPresent()) return DataResult.success(Pair.of(optionalInts.get(), ops.empty()));
-                        else return DataResult.error(() -> "int array not present!");
+                        return DataResult.error(() -> dataResult.error().orElseThrow().message());
                     }
                 }
             }

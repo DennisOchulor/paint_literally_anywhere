@@ -1,0 +1,77 @@
+package io.github.dennisochulor.paint_literally_anywhere.shape.parser;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dennisochulor.paint_literally_anywhere.OddCodecs;
+import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public record ShapeFile(
+        int schemaVersion,
+        String namespace,
+        String namespaceVersion,
+        List<QuadTemplate> templates,
+        Map<String, int[]> blockStates // String is BlockState.toString(), since map key codec MUST be String...
+) {
+    public static final int LATEST_SCHEMA_VERSION = 1;
+    public static final Codec<ShapeFile> CODEC = RecordCodecBuilder.create(
+            instance -> instance.group(
+                    Codec.INT.fieldOf("schemaVersion").forGetter(ShapeFile::schemaVersion),
+                    Codec.STRING.fieldOf("namespace").forGetter(ShapeFile::namespace),
+                    Codec.STRING.fieldOf("namespaceVersion").forGetter(ShapeFile::namespaceVersion),
+                    QuadTemplate.CODEC.listOf().fieldOf("templates").forGetter(ShapeFile::templates),
+                    Codec.unboundedMap(Codec.STRING, OddCodecs.INT_ARRAY_CODEC).fieldOf("blockStates").forGetter(ShapeFile::blockStates)
+            ).apply(instance, ShapeFile::new)
+    );
+
+
+    public static class Builder {
+        private final String namespace;
+        private final String namespaceVersion;
+        private final List<QuadTemplate> templates = new ArrayList<>();
+        private final Object2IntMap<QuadTemplate> templateToIndex = new Object2IntOpenHashMap<>();
+        private final Map<String, int[]> blockStates = new HashMap<>();
+
+        public Builder(String namespace, String namespaceVersion) {
+            this.namespace = namespace;
+            this.namespaceVersion = namespaceVersion;
+        }
+
+        public void add(BlockState state, List<QuadTemplate> templates) {
+            int[] indexes = new int[templates.size()];
+
+            for (int i = 0; i < templates.size(); i++) {
+                QuadTemplate template = templates.get(i);
+                int index = templateToIndex.getOrDefault(template, -1);
+
+                if (index == -1) {
+                    this.templates.add(template);
+                    index = this.templates.size() - 1;
+                    templateToIndex.put(template, index);
+                }
+
+                indexes[i] = index;
+            }
+
+            blockStates.put(state.toString(), indexes);
+        }
+
+        public ShapeFile build() {
+            return new ShapeFile(
+                    LATEST_SCHEMA_VERSION,
+                    namespace,
+                    namespaceVersion,
+                    List.copyOf(templates),
+                    Map.copyOf(blockStates)
+            );
+        }
+    }
+
+}
