@@ -1,7 +1,5 @@
 package io.github.dennisochulor.paint_literally_anywhere.client.model.generator;
 
-import com.google.gson.Gson;
-import com.mojang.serialization.JsonOps;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.client.mixin.BlockStateModelSetAccessor;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
@@ -15,12 +13,14 @@ import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -85,15 +85,14 @@ public final class ShapeFileGenerator {
             Files.createDirectories(shapesFolder);
         }
         catch (IOException e) {
-            PLAMod.LOGGER.warn("Failed to create shapes folder!", e);
+            throw new UncheckedIOException(e);
         }
 
-        Gson gson = new Gson();
         for (ShapeFile shapeFile : shapeFiles) {
-            ShapeFile.CODEC.encode(shapeFile, JsonOps.COMPRESSED, JsonOps.COMPRESSED.empty())
-                    .ifSuccess(jsonElement -> {
-                        try (FileWriter writer = new FileWriter(shapesFolder.resolve(shapeFile.namespace() + ".json").toFile(), false)) {
-                            gson.toJson(jsonElement, writer);
+            ShapeFile.CODEC.encode(shapeFile, NbtOps.INSTANCE, NbtOps.INSTANCE.empty())
+                    .ifSuccess(tag -> {
+                        try {
+                            NbtIo.writeCompressed(tag.asCompound().orElseThrow(), shapesFolder.resolve(shapeFile.namespace() + ".dat"));
                         }
                         catch (IOException e) {
                             PLAMod.LOGGER.warn("Failed to write shape file for {}!", shapeFile.namespace(), e);
