@@ -3,6 +3,7 @@ package io.github.dennisochulor.paint_literally_anywhere.network;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaletteMenu;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -18,6 +19,7 @@ public final class ModNetworking {
     public static void init() {
         PayloadTypeRegistry.serverboundPlay().register(ServerboundPaintbrushUpdatePacket.TYPE, ServerboundPaintbrushUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundPaletteMenuUpdatePacket.TYPE, ServerboundPaletteMenuUpdatePacket.STREAM_CODEC);
+        PayloadTypeRegistry.serverboundPlay().register(ServerboundPaintPacket.TYPE, ServerboundPaintPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataUpdatePacket.TYPE, ClientboundChunkCanvasDataUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataRemovalPacket.TYPE, ClientboundChunkCanvasDataRemovalPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataInitialSyncPacket.TYPE, ClientboundChunkCanvasDataInitialSyncPacket.STREAM_CODEC);
@@ -42,6 +44,10 @@ public final class ModNetworking {
             if (context.player().containerMenu instanceof PaletteMenu menu) {
                 menu.setRequestedColor(new Color(payload.argb(), true));
             }
+        }));
+
+        ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintPacket.TYPE, ((payload, context) -> {
+            PaintBrushItem.handlePacket(payload, context.player());
         }));
     }
 }

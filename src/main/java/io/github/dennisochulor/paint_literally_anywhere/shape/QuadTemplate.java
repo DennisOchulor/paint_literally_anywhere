@@ -3,12 +3,16 @@ package io.github.dennisochulor.paint_literally_anywhere.shape;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
+import org.jspecify.annotations.Nullable;
 
 public record QuadTemplate(
         Vector3fc v0,
@@ -55,32 +59,67 @@ public record QuadTemplate(
         return ShapeUtil.cache(template);
     }
 
+    public @Nullable BlockHitResult clip(Vector3fc from, Vector3fc to, BlockPos pos) {
+        // find intersection between a line (from/to) and this quad
+        Vector3fc v0 = unlocalize(this.v0, pos);
+        Vector3fc v1 = unlocalize(this.v1, pos);
+        Vector3fc v2 = unlocalize(this.v2, pos);
+        Vector3fc v3 = unlocalize(this.v3, pos);
 
-    public boolean clip(Vector3fc localHitPos) {
-        // check if localHitPos is on the quad's plane
-        Vector3fc planeNormal = colVector.cross(v2.sub(v0, new Vector3f()), new Vector3f());
-        float distance = localHitPos.sub(v0, new Vector3f()).dot(planeNormal);
+        // (v1 - v0) x (v2 - v0)
+        Vector3fc normal = v1.sub(v0, new Vector3f()).cross(v2.sub(v0, new Vector3f()));
 
-        if (Math.abs(distance) > 0.0001F) {
-            return false;
+        // (n . (v0 - p0)) / (n . (p1 - p0))
+        Vector3fc fromToVec = to.sub(from, new Vector3f());
+        float denom = normal.dot(fromToVec);
+        if (denom == 0) {
+            return null;
         }
 
-        //noinspection UnnecessaryLocalVariable
-        Vector3fc e1 = colVector;
-        Vector3fc e2 = v2.sub(v1, new Vector3f());
-        Vector3fc e3 = v3.sub(v2, new Vector3f());
-        Vector3fc e4 = v0.sub(v3, new Vector3f());
+        float t = normal.dot(v0.sub(from, new Vector3f())) / denom;
+        if (t < 0 || t > 1) {
+            return null;
+        }
 
-        Vector3fc v0ToHitPos = localHitPos.sub(v0, new Vector3f());
-        Vector3fc v1ToHitPos = localHitPos.sub(v1, new Vector3f());
-        Vector3fc v2ToHitPos = localHitPos.sub(v2, new Vector3f());
-        Vector3fc v3ToHitPos = localHitPos.sub(v3, new Vector3f());
+        // from + t(to - from)
+        Vector3fc intersect = from.add(fromToVec.mul(t, new Vector3f()), new Vector3f());
 
-        float dot0 = e1.cross(v0ToHitPos, new Vector3f()).dot(planeNormal);
-        float dot1 = e2.cross(v1ToHitPos, new Vector3f()).dot(planeNormal);
-        float dot2 = e3.cross(v2ToHitPos, new Vector3f()).dot(planeNormal);
-        float dot3 = e4.cross(v3ToHitPos, new Vector3f()).dot(planeNormal);
+        // for all edges, (vi+1 - vi) x (intersect - vi)
+        Vector3fc c0 = v1.sub(v0, new Vector3f()).cross(intersect.sub(v0, new Vector3f()));
+        Vector3fc c1 = v2.sub(v1, new Vector3f()).cross(intersect.sub(v1, new Vector3f()));
+        Vector3fc c2 = v3.sub(v2, new Vector3f()).cross(intersect.sub(v2, new Vector3f()));
+        Vector3fc c3 = v0.sub(v3, new Vector3f()).cross(intersect.sub(v3, new Vector3f()));
 
-        return dot0 >= 0 && dot1 >= 0 && dot2 >= 0 && dot3 >= 0;
+        boolean clip = normal.dot(c0) >= 0 && normal.dot(c1) >= 0 && normal.dot(c2) >= 0 && normal.dot(c3) >= 0;
+        if (!clip) {
+            return null;
+        }
+
+        Vector3fc delta = from.sub(to, new Vector3f());
+        Direction dir = Direction.getApproximateNearest(delta.x(), delta.y(), delta.z());
+        BlockHitResult result = new BlockHitResult(new Vec3(intersect), dir, pos, true);
+        ((BlockHitResultExt) result).pla$setClippedQuad(this);
+        return result;
+    }
+
+    public static Vector3fc localize(Vec3 vec, Direction hitDirection) {
+        float x = (float) Math.abs((Math.abs(vec.x()) - Math.abs(Math.floor(vec.x()))));
+        float y = (float) Math.abs((Math.abs(vec.y()) - Math.abs(Math.floor(vec.y()))));
+        float z = (float) Math.abs((Math.abs(vec.z()) - Math.abs(Math.floor(vec.z()))));
+
+        // Account for both most +ve and -ve of each axis being 0
+        if (x == 0 && hitDirection == Direction.EAST) x = 1;
+        if (y == 0 && hitDirection == Direction.UP) y = 1;
+        if (z == 0 && hitDirection == Direction.SOUTH) z = 1;
+
+        return new Vector3f(x, y, z);
+    }
+
+    public static Vector3fc unlocalize(Vector3fc vec, BlockPos pos) {
+        float x = pos.getX() + vec.x();
+        float y = pos.getY() + vec.y();
+        float z = pos.getZ() + vec.z();
+
+        return new Vector3f(x, y, z);
     }
 }
