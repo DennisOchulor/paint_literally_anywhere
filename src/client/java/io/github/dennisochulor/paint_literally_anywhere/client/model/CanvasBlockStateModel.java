@@ -122,7 +122,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                 emitter.color(argb, argb, argb, argb)
                         .emissive(emissive)
                         .lightmap(lightCoords, lightCoords, lightCoords, lightCoords)
-                        .cullFace(direction)
+                        //.cullFace(direction) // causes too many false positives :(
                         .chunkLayer(ChunkSectionLayer.TRANSLUCENT)
                         .uv(0, sprite().getU0(), sprite().getV0())
                         .uv(1, sprite().getU0(), sprite().getV1())
