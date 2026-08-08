@@ -19,9 +19,10 @@ Client Item
 ---
 
 **ToDo (bugs):**
+- Some blocks (e.g. chests, piglin head) generate no quads?
+- Some models like cross model share same quad?, which causes problems
 - Fix skull block culling issues
 - rightClickDelay packet spam
-- culling for non-full blocks
 - QuadTemplate#clip is still sometimes unreliable
     - Lectern back top face
     - Composter, hopper, cauldron inner faces (hitDirection is UP for some reason...)
