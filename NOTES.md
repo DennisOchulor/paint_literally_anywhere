@@ -24,6 +24,3 @@ Client Item
 - Fix skull block culling issues
 - rightClickDelay packet spam
 - Revisit color picker interactions
-- QuadTemplate#clip is still sometimes unreliable
-    - Lectern back top face
-    - Sign sides/top
