@@ -44,7 +44,7 @@ public class PaintBrushItem extends Item {
         }
 
         ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos,
-                QuadTemplate.localize(packet.hitPos(), packet.template().direction()), argb, emissive);
+                QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction()), argb, emissive);
     }
 
     @Override
