@@ -19,7 +19,7 @@ Client Item
 ---
 
 **ToDo (bugs):**
-- Some blocks (e.g. chests, piglin head) generate no quads?
+- BEs that render entirely via BER still use VoxelShape
 - Some models like cross model share same quad?, which causes problems
 - Fix skull block culling issues
 - rightClickDelay packet spam

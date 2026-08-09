@@ -55,7 +55,12 @@ public final class ShapeFileGenerator {
 
             model.emitQuads(quadEmitter, BlockAndTintGetter.EMPTY, BlockPos.ZERO, state, random, _ -> false);
             List<QuadTemplate> templates = quadEmitter.getAndClearTemplates();
-            builders.get(namespace).add(state, templates);
+
+            // some blocks like chests/banners emit no block quads by default because they render almost entirely via BER
+            // so just let these blocks fallback to the VoxelShape at runtime
+            if (!templates.isEmpty()) {
+                builders.get(namespace).add(state, templates);
+            }
         }
 
         Map<String, ShapeFile> shapeFiles = builders.entrySet().stream()
