@@ -91,6 +91,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
         BitSet emissiveData = instance.emissiveData();
         QuadTemplate template = instance.template();
         Direction direction = template.direction();
+        Vector3fc offset = OFFSETS.get(direction);
         int rows = instance.rows();
         int cols = instance.cols();
         int resolution = instance.resolution();
@@ -98,17 +99,20 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
 
         int lightCoords = LightCoordsUtil.getLightCoords(level, pos.relative(direction));
 
-        Vector3f rowUnitVecMutable = new Vector3f();
-        Vector3f colUnitVecMutable = new Vector3f();
-        template.rowVector().normalize(step, rowUnitVecMutable);
-        template.colVector().normalize(step, colUnitVecMutable);
-        //noinspection UnnecessaryLocalVariable - ensure we don't accidentally mutate it
-        Vector3fc rowUnitVec = rowUnitVecMutable;
-        //noinspection UnnecessaryLocalVariable - ensure we don't accidentally mutate it
-        Vector3fc colUnitVec = colUnitVecMutable;
-
         Vector3f refVertex = new Vector3f();
         Vector3f refScalerVec = new Vector3f();
+        template.rowVector().normalize(step, refVertex);
+        template.colVector().normalize(step, refScalerVec);
+        Vector3fc rowUnitVec = new Vector3f(refVertex);
+        Vector3fc colUnitVec = new Vector3f(refScalerVec);
+
+        // To handle cases where last pixel in row/col is not a full res pixel
+        float clipRowScale = step - (step * rows - template.rowVector().length());
+        Vector3fc clippedRowUnitVec = new Vector3f(rowUnitVec.normalize(clipRowScale, refScalerVec));
+
+        float clipColScale = step - (step * cols - template.colVector().length());
+        Vector3fc clippedColUnitVec = new Vector3f(colUnitVec.normalize(clipColScale, refScalerVec));
+
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 int i = QuadInstance.index(row, col, cols);
@@ -130,7 +134,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                         .uv(3, sprite().getU1(), sprite().getV0());
 
                 // set to template v0 first and offset to prevent z-fighting
-                refVertex.set(template.v0()).add(OFFSETS.get(direction));
+                refVertex.set(template.v0()).add(offset);
 
                 // v0
                 refVertex.add(colUnitVec.mul(col, refScalerVec));
@@ -138,15 +142,15 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                 emitter.pos(0, refVertex);
 
                 // v1 - step col
-                refVertex.add(colUnitVec);
+                refVertex.add(col == cols - 1 ? clippedColUnitVec : colUnitVec);
                 emitter.pos(1, refVertex);
 
                 // v2 - step row/col
-                refVertex.add(rowUnitVec);
+                refVertex.add(row == rows - 1 ? clippedRowUnitVec : rowUnitVec);
                 emitter.pos(2, refVertex);
 
                 // v3 - step row
-                refVertex.sub(colUnitVec);
+                refVertex.sub(col == cols - 1 ? clippedColUnitVec : colUnitVec);
                 emitter.pos(3, refVertex);
 
                 emitter.emit();
