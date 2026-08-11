@@ -2,7 +2,6 @@ package io.github.dennisochulor.paint_literally_anywhere;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataRemovalPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataUpdatePacket;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadInstance;
@@ -96,9 +95,7 @@ public record ChunkCanvasData(
         chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }
 
-    public static void removeServer(LevelChunk chunk, BlockPos pos, BlockState newState) {
-        if (chunk.getLevel().isClientSide()) throw new IllegalStateException("removeServer called on client!");
-
+    public static void remove(LevelChunk chunk, BlockPos pos, BlockState newState) {
         var data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
 
         if (data == null) return;
@@ -121,7 +118,7 @@ public record ChunkCanvasData(
             }
         }
 
-        if (!removed.isEmpty()) { // manually sync removals
+        if (!removed.isEmpty()) {
             if (instances.isEmpty()) {
                 blocks.remove(pos);
             }
@@ -129,41 +126,13 @@ public record ChunkCanvasData(
                 chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
             }
 
-            var packet = new ClientboundChunkCanvasDataRemovalPacket(pos, removed);
-            PlayerLookup.tracking((ServerLevel) chunk.getLevel(), pos).forEach(player -> ServerPlayNetworking.send(player, packet));
-            chunk.markUnsaved(); // ensure attachment saves properly since we might not have called removeAttached()
+            if (chunk.getLevel().isClientSide()) {
+                chunk.getLevel().sendBlockUpdated(pos, newState, newState, Block.UPDATE_ALL); // trigger chunk rebuild
+            }
+            else {
+                chunk.markUnsaved(); // ensure attachment saves properly since we might not have called removeAttached()
+            }
         }
-    }
-
-    public static void removeClient(LevelChunk chunk, ClientboundChunkCanvasDataRemovalPacket packet) {
-        if (!chunk.getLevel().isClientSide()) throw new IllegalStateException("removeClient called on server!");
-
-        var data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
-
-        if (data == null) {
-            PLAMod.LOGGER.warn("Received removal packet for non-existant ChunkCanvasData! {}/{}", chunk.getLevel().dimension(), packet.pos());
-            return;
-        }
-
-        var blocks = data.blocks();
-        List<QuadInstance> instances = blocks.get(packet.pos());
-
-        if (instances == null) {
-            PLAMod.LOGGER.warn("Received removal packet for non-existant List<QuadInstance>! {}/{}", chunk.getLevel().dimension(), packet.pos());
-            return;
-        }
-
-        instances.removeIf(quadInstance -> packet.templates().contains(quadInstance.template()));
-
-        if (instances.isEmpty()) {
-            blocks.remove(packet.pos());
-        }
-        if (blocks.isEmpty()) {
-            chunk.removeAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
-        }
-
-        BlockState state = chunk.getBlockState(packet.pos());
-        chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }
 
     public static void validateOnChunkLoad(LevelChunk chunk) {

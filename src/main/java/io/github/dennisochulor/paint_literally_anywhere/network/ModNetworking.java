@@ -21,7 +21,6 @@ public final class ModNetworking {
         PayloadTypeRegistry.serverboundPlay().register(ServerboundPaletteMenuUpdatePacket.TYPE, ServerboundPaletteMenuUpdatePacket.STREAM_CODEC);
         PayloadTypeRegistry.serverboundPlay().register(ServerboundPaintPacket.TYPE, ServerboundPaintPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataUpdatePacket.TYPE, ClientboundChunkCanvasDataUpdatePacket.STREAM_CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataRemovalPacket.TYPE, ClientboundChunkCanvasDataRemovalPacket.STREAM_CODEC);
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataInitialSyncPacket.TYPE, ClientboundChunkCanvasDataInitialSyncPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintbrushUpdatePacket.TYPE, (payload, context) -> {
