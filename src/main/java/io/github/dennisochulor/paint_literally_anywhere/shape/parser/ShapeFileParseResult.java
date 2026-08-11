@@ -40,7 +40,7 @@ public class ShapeFileParseResult {
         }
 
         List<QuadTemplate> templates = new ArrayList<>();
-        int[] templateIndexes = shapeFile.blockStates().get(state.toString());
+        int[] templateIndexes = shapeFile.blockStates().get(state);
 
         if (templateIndexes == null) {
             return null;

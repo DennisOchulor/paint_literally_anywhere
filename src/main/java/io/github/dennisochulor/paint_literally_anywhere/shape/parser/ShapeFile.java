@@ -3,6 +3,7 @@ package io.github.dennisochulor.paint_literally_anywhere.shape.parser;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dennisochulor.paint_literally_anywhere.OddCodecs;
+import io.github.dennisochulor.paint_literally_anywhere.ParallelListMapCodec;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -18,7 +19,7 @@ public record ShapeFile(
         String namespace,
         String namespaceVersion,
         List<QuadTemplate> templates,
-        Map<String, int[]> blockStates // String is BlockState.toString(), since map key codec MUST be String...
+        Map<BlockState, int[]> blockStates
 ) {
     public static final int LATEST_SCHEMA_VERSION = 1;
     public static final Codec<ShapeFile> CODEC = RecordCodecBuilder.create(
@@ -27,7 +28,7 @@ public record ShapeFile(
                     Codec.STRING.fieldOf("namespace").forGetter(ShapeFile::namespace),
                     Codec.STRING.fieldOf("namespaceVersion").forGetter(ShapeFile::namespaceVersion),
                     QuadTemplate.CODEC.listOf().fieldOf("templates").forGetter(ShapeFile::templates),
-                    Codec.unboundedMap(Codec.STRING, OddCodecs.INT_ARRAY_CODEC).fieldOf("blockStates").forGetter(ShapeFile::blockStates)
+                    new ParallelListMapCodec<>(BlockState.CODEC, OddCodecs.INT_ARRAY_CODEC, true).fieldOf("blockStates").forGetter(ShapeFile::blockStates)
             ).apply(instance, ShapeFile::new)
     );
 
@@ -37,7 +38,7 @@ public record ShapeFile(
         private final String namespaceVersion;
         private final List<QuadTemplate> templates = new ArrayList<>();
         private final Object2IntMap<QuadTemplate> templateToIndex = new Object2IntOpenHashMap<>();
-        private final Map<String, int[]> blockStates = new HashMap<>();
+        private final Map<BlockState, int[]> blockStates = new HashMap<>();
 
         public Builder(String namespace, String namespaceVersion) {
             this.namespace = namespace;
@@ -60,7 +61,7 @@ public record ShapeFile(
                 indexes[i] = index;
             }
 
-            blockStates.put(state.toString(), indexes);
+            blockStates.put(state, indexes);
         }
 
         public ShapeFile build() {

@@ -27,8 +27,6 @@ public class PLAMod implements ModInitializer {
     
     @Override
     public void onInitialize() {
-        LOGGER.info("Initialising Paint Literally Anywhere Mod!");
-
         ModNetworking.init();
         ModComponents.init();
         ModItems.init();

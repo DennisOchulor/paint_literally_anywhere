@@ -52,6 +52,8 @@ public final class ShapeFileGenerator {
             String namespace = BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace();
 
             if (!namespacesToGenerate.containsKey(namespace)) continue;
+            // needed because of vanilla's hacks in BlockStateDefinitions for item frames, thanks Mojank
+            if (state.isAir()) continue;
 
             model.emitQuads(quadEmitter, BlockAndTintGetter.EMPTY, BlockPos.ZERO, state, random, _ -> false);
             List<QuadTemplate> templates = quadEmitter.getAndClearTemplates();

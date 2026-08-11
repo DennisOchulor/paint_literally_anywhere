@@ -27,19 +27,11 @@ public record ChunkCanvasData(
     public static final Codec<ChunkCanvasData> CODEC = RecordCodecBuilder.create(
             instance ->
                     instance.group(
-                            Codec.unboundedMap(
-
-                                    // Format: x/y/z - needed because map keys must be strings. AAAAAAAAAAHHHHHHHHHHH!!!
-                                    Codec.STRING.xmap(str -> {
-                                        String[] arr = str.split("/");
-                                        return new BlockPos(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]), Integer.parseInt(arr[2]));
-                                    }, blockPos -> blockPos.getX() + "/" + blockPos.getY() + "/" + blockPos.getZ()),
-
-                                    QuadInstance.CODEC.listOf()
-                                            .xmap(list -> (List<QuadInstance>) new ArrayList<>(list), List::copyOf)
-
-                            ).xmap(map -> (Map<BlockPos, List<QuadInstance>>) new HashMap<>(map), Map::copyOf)
-                            .fieldOf("blocks").forGetter(ChunkCanvasData::blocks)
+                            new ParallelListMapCodec<>(
+                                    BlockPos.CODEC,
+                                    QuadInstance.CODEC.listOf().xmap(list -> (List<QuadInstance>) new ArrayList<>(list), List::copyOf),
+                                    false
+                            ).fieldOf("blocks").forGetter(ChunkCanvasData::blocks)
                     ).apply(instance, ChunkCanvasData::new)
     );
 
