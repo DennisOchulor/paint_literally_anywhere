@@ -10,17 +10,16 @@ Client Item
 ---
 
 **ToDo (features):**
-- Add eraser
-- Generate accurate QuadTemplates on client
-  - Optimize read/write of shape files
 - Config (resolution)?
-- Somehow transfer pixels between QuadTemplates that are just rotated (e.g. flipping trapdoors)
+- Somehow transfer pixels when block state changes in certain ways
+  - e.g. flipping trapdoors, piston push block
 
 ---
 
 **ToDo (bugs):**
-- BEs that render entirely via BER still use VoxelShape
 - Some models like cross model share same quad?, which causes problems
+- BEs that render entirely via BER still use VoxelShape
 - Fix skull block culling issues
 - rightClickDelay packet spam
 - Revisit color picker interactions
+- Revisit durability issues
