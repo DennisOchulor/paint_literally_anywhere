@@ -12,7 +12,7 @@ Client Item
 **ToDo (features):**
 - Config (resolution)?
 - Somehow transfer pixels when block state changes in certain ways
-  - e.g. flipping trapdoors, piston push block
+  - e.g. flipping trapdoors
 
 ---
 
