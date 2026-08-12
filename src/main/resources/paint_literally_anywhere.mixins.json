@@ -2,12 +2,17 @@
   "required": true,
   "package": "io.github.dennisochulor.paint_literally_anywhere.mixin",
   "compatibilityLevel": "JAVA_25",
+  "mixinextras": {
+    "minVersion": "0.5.4"
+  },
   "mixins": [
     "BlockGetterMixin",
     "BlockHitResultMixin",
     "BlockStateBaseMixin",
     "LevelChunkMixin",
-    "PlayerChunkSenderMixin"
+    "PlayerChunkSenderMixin",
+    "moving.PistonBaseBlockMixin",
+    "moving.PistonMovingBlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

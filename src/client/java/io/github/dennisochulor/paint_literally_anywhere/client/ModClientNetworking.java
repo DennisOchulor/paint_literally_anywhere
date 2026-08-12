@@ -2,6 +2,7 @@ package io.github.dennisochulor.paint_literally_anywhere.client;
 
 import io.github.dennisochulor.paint_literally_anywhere.ChunkCanvasData;
 import io.github.dennisochulor.paint_literally_anywhere.ModAttachmentTypes;
+import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataAddPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataInitialSyncPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataUpdatePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -18,6 +19,13 @@ public final class ModClientNetworking {
                     LevelChunk chunk = Objects.requireNonNull(context.client().level).getChunkAt(payload.pos());
                     ChunkCanvasData.paintClient(chunk, payload);
                 }
+        );
+
+        ClientPlayNetworking.registerGlobalReceiver(ClientboundChunkCanvasDataAddPacket.TYPE,
+                ((payload, context) -> {
+                    LevelChunk chunk = Objects.requireNonNull(context.client().level).getChunkAt(payload.pos());
+                    ChunkCanvasData.addClient(chunk, payload);
+                })
         );
 
         ClientPlayNetworking.registerGlobalReceiver(ClientboundChunkCanvasDataInitialSyncPacket.TYPE,

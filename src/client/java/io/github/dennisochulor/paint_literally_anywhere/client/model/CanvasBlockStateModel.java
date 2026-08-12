@@ -22,6 +22,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
@@ -71,7 +72,8 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
         }
 
         // yikes
-        ChunkCanvasData data = clientLevel.getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
+        LevelChunk chunk = clientLevel.getChunkAt(pos);
+        ChunkCanvasData data = chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
 
         if (data == null) {
             return;

@@ -2,6 +2,7 @@ package io.github.dennisochulor.paint_literally_anywhere;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataAddPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataUpdatePacket;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadInstance;
@@ -91,6 +92,41 @@ public record ChunkCanvasData(
         }
 
         quad.paintClient(packet.index(), packet.argb(), packet.emissive());
+        BlockState state = chunk.getBlockState(packet.pos());
+        chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
+    }
+
+    public static void addServer(LevelChunk chunk, BlockPos pos, List<QuadInstance> newInstances) {
+        if (chunk.getLevel().isClientSide()) throw new IllegalStateException("addServer called on client!");
+
+        ChunkCanvasData data = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>()));
+        List<QuadInstance> currentInstances = data.blocks().computeIfAbsent(pos, _ -> new ArrayList<>());
+
+        BlockState state = chunk.getBlockState(pos);
+        Set<QuadTemplate> templates = ((BlockStateBaseExt) state).pla$quads(chunk.getLevel(), pos);
+        List<QuadInstance> added = new ArrayList<>();
+        for (QuadInstance instance : newInstances) {
+            if (templates.contains(instance.template())) {
+                currentInstances.add(instance);
+                added.add(instance);
+            }
+        }
+
+        if (!added.isEmpty()) {
+            chunk.markUnsaved(); // ensure attachment saves properly
+            var packet = new ClientboundChunkCanvasDataAddPacket(pos, added);
+            PlayerLookup.tracking((ServerLevel) chunk.getLevel(), pos).forEach(player -> ServerPlayNetworking.send(player, packet));
+        }
+    }
+
+    public static void addClient(LevelChunk chunk, ClientboundChunkCanvasDataAddPacket packet) {
+        if (!chunk.getLevel().isClientSide()) throw new IllegalStateException("addClient called on server!");
+
+        ChunkCanvasData data = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>()));
+        List<QuadInstance> currentInstances = data.blocks().computeIfAbsent(packet.pos(), _ -> new ArrayList<>());
+
+        currentInstances.addAll(packet.instances());
+
         BlockState state = chunk.getBlockState(packet.pos());
         chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }
