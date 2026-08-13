@@ -1,5 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import io.github.dennisochulor.paint_literally_anywhere.ModMenuTypes;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.client.datagen.ModModelProvider;
@@ -7,16 +8,17 @@ import io.github.dennisochulor.paint_literally_anywhere.client.model.ModModelLoa
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.fabricmc.fabric.api.event.player.ItemEvents;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 
 import java.awt.Color;
@@ -33,17 +35,37 @@ public class PLAModClient implements ClientModInitializer {
 
         ModClientNetworking.init();
 
-        ItemEvents.USE.register((level, player, _) -> {
-            ItemStack itemStack = player.getMainHandItem();
+        KeyMapping.Category keyBindingCategory = KeyMapping.Category.register(PLAMod.id("keybinds"));
+        KeyMapping creativeColorPickerKeybind = KeyMappingHelper.registerKeyMapping(
+                new KeyMapping("key.paint_literally_anywhere.creative_color_picker",
+                        InputConstants.Type.KEYSYM,
+                        InputConstants.KEY_B,
+                        keyBindingCategory
+                )
+        );
 
-            if (itemStack.getItem() != ModItems.PAINT_BRUSH) return null;
-            if (!level.isClientSide() || !player.isCreative() || !player.isCrouching()) return null;
+        ClientTickEvents.START_CLIENT_TICK.register(minecraft -> {
+            if (!creativeColorPickerKeybind.consumeClick()) {
+                return;
+            }
+
+            //noinspection StatementWithEmptyBody
+            while (creativeColorPickerKeybind.consumeClick()); //consume additional presses
+
+            LocalPlayer player = minecraft.player;
+            if (player == null || !player.isCreative() || minecraft.gui.screen() != null) {
+                return;
+            }
+
+            ItemStack itemStack = player.getMainHandItem();
+            if (!itemStack.is(ModItems.PAINT_BRUSH)) {
+                player.sendOverlayMessage(Component.literal("Hold a paint brush in your mainhand!"));
+                return;
+            }
 
             int argb = itemStack.getOrDefault(ModComponents.ARGB_COLOR, Color.RED.getRGB());
             boolean emissive = itemStack.has(ModComponents.EMISSIVE);
-
-            Minecraft.getInstance().gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), emissive));
-            return InteractionResult.CONSUME;
+            minecraft.gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), emissive));
         });
 
         ItemTooltipCallback.EVENT.register((stack, _, _, lines) -> {
