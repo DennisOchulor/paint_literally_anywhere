@@ -43,8 +43,12 @@ public class PaintBrushItem extends Item {
             return; // simply ignore nonsense packet
         }
 
-        ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos,
+        boolean success = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos,
                 QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction()), argb, emissive);
+
+        if (success) {
+            itemStack.hurtAndBreak(1, player, InteractionHand.MAIN_HAND);
+        }
     }
 
     @Override

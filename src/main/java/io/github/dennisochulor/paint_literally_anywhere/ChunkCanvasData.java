@@ -45,8 +45,10 @@ public record ChunkCanvasData(
     );
 
 
-
-    public static void paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos, int argb, boolean emissive) {
+    /**
+     * @return true if paint was successful
+     */
+    public static boolean paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos, int argb, boolean emissive) {
         if (chunk.getLevel().isClientSide()) throw new IllegalStateException("paintServer called on client!");
 
         var blocks = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>())).blocks();
@@ -70,6 +72,10 @@ public record ChunkCanvasData(
 
             var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, indexPainted, argb, emissive);
             PlayerLookup.tracking((ServerLevel) chunk.getLevel(), chunk.getPos()).forEach(player -> ServerPlayNetworking.send(player, updatePacket));
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
