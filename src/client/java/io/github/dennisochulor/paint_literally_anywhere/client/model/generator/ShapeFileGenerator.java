@@ -30,7 +30,7 @@ public final class ShapeFileGenerator {
     private ShapeFileGenerator() {}
 
     public static ShapeFileParseResult generate(Minecraft minecraft, ShapeFileParseResult currentResult) {
-        Map<String, ModMetadata> namespacesToGenerate = currentResult.namespacesToGenerate();
+        Map<String, ModMetadata> namespacesToGenerate = currentResult.missingNamespaces(true);
         Map<BlockState, BlockStateModel> stateToModel = ((BlockStateModelSetAccessor) minecraft.getModelManager().getBlockStateModelSet()).pla$modelByState();
 
         if (namespacesToGenerate.isEmpty()) {
@@ -73,7 +73,7 @@ public final class ShapeFileGenerator {
         ShapeFileParseResult newResult = ShapeFileParseResult.merge(currentResult, shapeFiles);
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            Set<String> remainderNamespaces = newResult.namespacesToGenerate().keySet();
+            Set<String> remainderNamespaces = newResult.missingNamespaces(true).keySet();
 
             if (!remainderNamespaces.isEmpty()) {
                 StringBuilder sb = new StringBuilder("Still got namespaces with ungenerated shape files!\n");

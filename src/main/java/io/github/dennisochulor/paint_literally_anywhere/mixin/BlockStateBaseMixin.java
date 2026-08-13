@@ -5,6 +5,7 @@ import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import io.github.dennisochulor.paint_literally_anywhere.shape.ShapeUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -17,19 +18,23 @@ import java.util.Set;
 
 @Mixin(BlockBehaviour.BlockStateBase.class)
 abstract class BlockStateBaseMixin implements BlockStateBaseExt {
-    @Shadow
-    public abstract VoxelShape getShape(BlockGetter level, BlockPos pos);
+    @Shadow public abstract VoxelShape getShape(BlockGetter level, BlockPos pos);
 
     @Unique
     private @Nullable Set<QuadTemplate> pla$quads;
 
     @Override
-    public Set<QuadTemplate> pla$quads(BlockGetter level, BlockPos pos) {
+    public Set<QuadTemplate> pla$quads(Level level, BlockPos pos) {
         if (pla$quads == null) {
             //noinspection DataFlowIssue - the cast is safe
-            pla$quads = ShapeUtil.getQuadTemplates((BlockState) (Object) this, getShape(level, pos));
+            pla$quads = ShapeUtil.getQuadTemplates(level, (BlockState) (Object) this, getShape(level, pos));
         }
 
         return pla$quads;
+    }
+
+    @Override
+    public void pla$clearCache() {
+        pla$quads = null;
     }
 }

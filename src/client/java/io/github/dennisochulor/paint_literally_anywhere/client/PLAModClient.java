@@ -7,16 +7,19 @@ import io.github.dennisochulor.paint_literally_anywhere.client.datagen.ModModelP
 import io.github.dennisochulor.paint_literally_anywhere.client.model.ModModelLoadingPlugin;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
@@ -77,5 +80,15 @@ public class PLAModClient implements ClientModInitializer {
                 lines.add(Component.literal("Opacity: " + opacity + "%"));
             }
         });
+
+        // I hate this, necessary since diff servers may need diff cached quads
+        // See ModAttachmentTypes.INACCURATE_NAMESPACES
+        ClientPlayConnectionEvents.DISCONNECT.register((_, _) ->
+            BuiltInRegistries.BLOCK.forEach(block ->
+                    block.getStateDefinition().getPossibleStates().forEach(state ->
+                            ((BlockStateBaseExt) state).pla$clearCache()
+                    )
+            )
+        );
     }
 }

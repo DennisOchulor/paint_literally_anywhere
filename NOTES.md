@@ -21,5 +21,3 @@ Client Item
 - BEs that render entirely via BER still use VoxelShape
 - Fix skull block culling issues
 - rightClickDelay packet spam
-- Revisit color picker interactions
-- Revisit durability issues

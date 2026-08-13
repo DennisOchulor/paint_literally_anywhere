@@ -6,6 +6,7 @@ import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.network.ModNetworking;
 import io.github.dennisochulor.paint_literally_anywhere.shape.ShapeUtil;
+import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParseResult;
 import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParser;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
@@ -40,9 +41,17 @@ public class PLAMod implements ModInitializer {
         });
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            ShapeFileParseResult result;
             if (server.isDedicatedServer()) {
-                ShapeUtil.setParseResult(ShapeFileParser.parse(server.getServerDirectory()));
+                result = ShapeFileParser.parse(server.getServerDirectory());
+                ShapeUtil.setParseResult(result);
             }
+            else { // we have a client, so parsing/generating was already done during model baking
+                result = ShapeUtil.getParseResult();
+            }
+
+            server.globalAttachments().setAttached(ModAttachmentTypes.INACCURATE_NAMESPACES,
+                    result.missingNamespaces(false).keySet());
         });
 
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {

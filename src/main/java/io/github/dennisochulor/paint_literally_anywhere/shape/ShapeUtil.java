@@ -1,8 +1,11 @@
 package io.github.dennisochulor.paint_literally_anywhere.shape;
 
+import io.github.dennisochulor.paint_literally_anywhere.ModAttachmentTypes;
 import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParseResult;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Unit;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -19,8 +22,11 @@ public final class ShapeUtil {
     private static final Set<QuadTemplate> BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
     private static ShapeFileParseResult parseResult = ShapeFileParseResult.EMPTY;
 
-    public static Set<QuadTemplate> getQuadTemplates(BlockState state, VoxelShape shape) {
-        if (parseResult.get(state) instanceof Set<QuadTemplate> templates) {
+    public static Set<QuadTemplate> getQuadTemplates(Level level, BlockState state, VoxelShape shape) {
+        boolean shouldUseAccurateShape = !level.isClientSide() || !level.globalAttachments().getAttachedOrThrow(ModAttachmentTypes.INACCURATE_NAMESPACES)
+                .contains(BuiltInRegistries.BLOCK.getKey(state.getBlock()).getNamespace());
+
+        if (shouldUseAccurateShape && parseResult.get(state) instanceof Set<QuadTemplate> templates) {
             return templates;
         }
 
@@ -29,6 +35,10 @@ public final class ShapeUtil {
 
     public static void setParseResult(ShapeFileParseResult result) {
         parseResult = result;
+    }
+
+    public static ShapeFileParseResult getParseResult() {
+        return parseResult;
     }
 
     /**

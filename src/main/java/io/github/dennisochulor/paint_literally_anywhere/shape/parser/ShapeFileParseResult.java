@@ -53,8 +53,8 @@ public class ShapeFileParseResult {
         return Set.copyOf(templates);
     }
 
-    public Map<String, ModMetadata> namespacesToGenerate() {
-        Map<String, ModMetadata> needsRegen = new HashMap<>();
+    public Map<String, ModMetadata> missingNamespaces(boolean includePartial) {
+        Map<String, ModMetadata> missing = new HashMap<>();
         Set<String> allNamespacesWithBlocks = BuiltInRegistries.BLOCK.keySet().stream().map(Identifier::getNamespace).collect(Collectors.toUnmodifiableSet());
 
         allNamespacesWithBlocks.forEach(namespace -> {
@@ -62,14 +62,19 @@ public class ShapeFileParseResult {
             String version = modContainer.getMetadata().getVersion().getFriendlyString();
             ShapeFile shapeFile = shapeFiles.get(namespace);
 
-            if (shapeFile == null ||
-                    shapeFile.schemaVersion() != ShapeFile.LATEST_SCHEMA_VERSION ||
-                    !shapeFile.namespaceVersion().equals(version)
+            if (shapeFile == null) {
+                missing.put(namespace, modContainer.getMetadata());
+            }
+            else if (includePartial &&
+                    (
+                            shapeFile.schemaVersion() != ShapeFile.LATEST_SCHEMA_VERSION ||
+                            !shapeFile.namespaceVersion().equals(version)
+                    )
             ) {
-                needsRegen.put(namespace, modContainer.getMetadata());
+                missing.put(namespace, modContainer.getMetadata());
             }
         });
 
-        return Map.copyOf(needsRegen);
+        return Map.copyOf(missing);
     }
 }
