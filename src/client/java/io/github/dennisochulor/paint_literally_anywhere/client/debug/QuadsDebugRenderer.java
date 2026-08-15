@@ -20,6 +20,8 @@ import java.util.Set;
 
 public class QuadsDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
     public static final DebugSubscription<Unit> DUMMY = new DebugSubscription<>(Unit.STREAM_CODEC);
+    private static final int[] RAINBOW = new int[]{Color.RED.getRGB(), Color.YELLOW.getRGB(),
+            Color.GREEN.getRGB(), Color.CYAN.getRGB(), Color.BLUE.getRGB(), Color.MAGENTA.getRGB()};
     private static final boolean ENABLED = true;
 
     private final Minecraft minecraft;
@@ -43,14 +45,17 @@ public class QuadsDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
             BlockPos pos = blockHitResult.getBlockPos();
             Set<QuadTemplate> templates = ((BlockStateBaseExt) minecraft.level.getBlockState(pos)).pla$quads(minecraft.level, pos);
 
+            int i = 0;
             for (QuadTemplate template : templates) {
                 Gizmos.rect(
                         new Vec3(QuadTemplate.unlocalize(template.v0(), pos)),
                         new Vec3(QuadTemplate.unlocalize(template.v1(), pos)),
                         new Vec3(QuadTemplate.unlocalize(template.v2(), pos)),
                         new Vec3(QuadTemplate.unlocalize(template.v3(), pos)),
-                        GizmoStyle.stroke(Color.CYAN.getRGB())
+                        GizmoStyle.stroke(Color.CYAN.getRGB()) // change to RAINBOW[i] to check for z-fighting quads
                 );
+
+                i = (i + 1) % RAINBOW.length;
             }
 
             minecraft.gameRenderer.gameRenderState().levelRenderState.blockOutlineRenderState = null;

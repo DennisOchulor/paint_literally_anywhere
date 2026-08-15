@@ -4,7 +4,7 @@ import io.github.dennisochulor.paint_literally_anywhere.ModAttachmentTypes;
 import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParseResult;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.util.Unit;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -17,7 +17,8 @@ import java.util.*;
 public final class ShapeUtil {
     private ShapeUtil() {}
 
-    public static final ScopedValue<Unit> USE_ACCURATE_SHAPE = ScopedValue.newInstance();
+    // Entity here is the entity that is requesting the accurate shape (always the LocalPlayer anyway)
+    public static final ScopedValue<Entity> USE_ACCURATE_SHAPE = ScopedValue.newInstance();
     private static final Map<QuadTemplate, QuadTemplate> TEMPLATE_CACHE = new HashMap<>();
     private static final Set<QuadTemplate> BLOCK_TEMPLATES = voxelShapeToQuadTemplates(Shapes.block());
     private static ShapeFileParseResult parseResult = ShapeFileParseResult.EMPTY;

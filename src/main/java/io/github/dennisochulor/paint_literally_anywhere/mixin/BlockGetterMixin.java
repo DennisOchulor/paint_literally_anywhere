@@ -6,6 +6,8 @@ import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import io.github.dennisochulor.paint_literally_anywhere.shape.ShapeUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -46,6 +48,21 @@ public interface BlockGetterMixin {
                     clippedQuad = quad;
                     blockHitResult = result;
                     distance = d;
+                }
+                else if (d == distance) {
+                    // Some models like cross block model (see grass/flowers) have two quads in exact same positions
+                    // So use direction as a tie breaker
+
+                    Entity entity = ShapeUtil.USE_ACCURATE_SHAPE.get();
+                    Direction xDir = Direction.getFacingAxis(entity, Direction.Axis.X).getOpposite();
+                    Direction yDir = Direction.getFacingAxis(entity, Direction.Axis.Y).getOpposite();
+                    Direction zDir = Direction.getFacingAxis(entity, Direction.Axis.Z).getOpposite();
+                    Direction quadDir = quad.direction();
+
+                    if (quadDir == xDir || quadDir == yDir || quadDir == zDir) {
+                        clippedQuad = quad;
+                        blockHitResult = result;
+                    }
                 }
             }
         }
