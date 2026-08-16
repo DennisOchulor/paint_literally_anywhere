@@ -59,12 +59,12 @@ public record QuadTemplate(
         return ShapeUtil.cache(template);
     }
 
-    public @Nullable BlockHitResult clip(Vector3fc from, Vector3fc to, BlockPos pos) {
+    public @Nullable BlockHitResult clip(Vector3fc from, Vector3fc to, BlockPos pos, Vector3fc offset) {
         // find intersection between a line (from/to) and this quad
-        Vector3fc v0 = unlocalize(this.v0, pos);
-        Vector3fc v1 = unlocalize(this.v1, pos);
-        Vector3fc v2 = unlocalize(this.v2, pos);
-        Vector3fc v3 = unlocalize(this.v3, pos);
+        Vector3fc v0 = unlocalize(this.v0, pos).add(offset, new Vector3f());
+        Vector3fc v1 = unlocalize(this.v1, pos).add(offset, new Vector3f());
+        Vector3fc v2 = unlocalize(this.v2, pos).add(offset, new Vector3f());
+        Vector3fc v3 = unlocalize(this.v3, pos).add(offset, new Vector3f());
 
         // (v1 - v0) x (v2 - v0)
         Vector3fc normal = v1.sub(v0, new Vector3f()).cross(v2.sub(v0, new Vector3f()));
@@ -97,10 +97,13 @@ public record QuadTemplate(
 
         Vector3fc delta = from.sub(to, new Vector3f());
         Direction dir = Direction.getApproximateNearest(delta.x(), delta.y(), delta.z());
-        BlockHitResult result = new BlockHitResult(new Vec3(intersect), dir, pos, true);
+        // hitResult should use no offset values
+        BlockHitResult result = new BlockHitResult(new Vec3(intersect.sub(offset, new Vector3f())), dir, pos, true);
         ((BlockHitResultExt) result).pla$setClippedQuad(this);
         return result;
     }
+
+
 
     // pos is needed as some blocks extend outside the normal block range
     // so vec could be referring to a neighbor pos

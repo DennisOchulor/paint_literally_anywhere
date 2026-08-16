@@ -13,6 +13,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -35,13 +36,14 @@ public interface BlockGetterMixin {
 
         Level level = (Level) this;
         Set<QuadTemplate> templates = ((BlockStateBaseExt) blockState).pla$quads(level, pos);
+        Vector3fc offset = blockState.getOffset(pos).toVector3f();
 
         QuadTemplate clippedQuad = null;
         BlockHitResult blockHitResult = null;
         double distance = Double.MAX_VALUE;
 
         for (QuadTemplate quad : templates) {
-            if (quad.clip(context.getFrom().toVector3f(), context.getTo().toVector3f(), pos) instanceof BlockHitResult result) {
+            if (quad.clip(context.getFrom().toVector3f(), context.getTo().toVector3f(), pos, offset) instanceof BlockHitResult result) {
                 double d = context.getFrom().distanceToSqr(result.getLocation());
 
                 if (clippedQuad == null || d < distance) {

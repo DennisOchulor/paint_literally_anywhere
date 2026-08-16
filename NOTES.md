@@ -17,8 +17,6 @@ Client Item
 ---
 
 **ToDo (bugs):**
-- Some models like cross model share same quad?, which causes problems
-  - see brewing stand, most foliage
 - BEs that render entirely via BER still use VoxelShape
   - see skulls, banners
 - rightClickDelay packet spam
