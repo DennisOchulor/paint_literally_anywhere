@@ -10,7 +10,7 @@ Client Item
 ---
 
 **ToDo (features):**
-- Config (resolution)?
+- Resolution, brush size, fill, color picker (incl eyedropper)
 - Somehow transfer pixels when block state changes in certain ways
   - e.g. flipping trapdoors
 
