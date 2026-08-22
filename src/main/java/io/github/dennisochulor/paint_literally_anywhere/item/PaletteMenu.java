@@ -195,7 +195,8 @@ public class PaletteMenu extends ItemCombinerMenu {
         }
         else {
             ItemStack resultStack = inputStack.copy();
-            resultStack.set(ModComponents.ARGB_COLOR, requestedColor.getRGB());
+            PaintBrushProperties properties = resultStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT).withArgb(requestedColor.getRGB());
+            resultStack.set(ModComponents.PAINT_BRUSH, properties);
             resultSlots.setItem(RESULT_SLOT_INDEX, resultStack);
         }
     }

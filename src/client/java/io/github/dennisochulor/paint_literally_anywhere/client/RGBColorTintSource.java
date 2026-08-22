@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.Identifier;
@@ -23,9 +24,9 @@ public record RGBColorTintSource(int defaultColor) implements ItemTintSource {
 
     @Override
     public int calculate(ItemStack itemStack, @Nullable ClientLevel level, @Nullable LivingEntity owner) {
-        Integer argb = itemStack.getComponents().get(ModComponents.ARGB_COLOR);
+        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
         // make it opaque as opacity is handled by the model itself (see datagen)
-        return argb != null ? ARGB.opaque(argb) : defaultColor;
+        return properties.hasActualColor() ? ARGB.opaque(properties.argb()) : defaultColor;
     }
 
     @Override

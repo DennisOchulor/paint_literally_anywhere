@@ -21,7 +21,7 @@ public final class ModItems {
     public static final Item PAINT_BRUSH = register(
             ModItemIds.PAINT_BRUSH,
             PaintBrushItem::new,
-            new Item.Properties().durability(512)
+            new Item.Properties().durability(512).component(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT)
     );
 
 

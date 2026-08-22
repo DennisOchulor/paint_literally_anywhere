@@ -4,15 +4,16 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.dennisochulor.paint_literally_anywhere.ModMenuTypes;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.client.datagen.ModModelProvider;
+import io.github.dennisochulor.paint_literally_anywhere.client.datagen.PaintBrushPredicates;
 import io.github.dennisochulor.paint_literally_anywhere.client.debug.QuadsDebugRenderer;
 import io.github.dennisochulor.paint_literally_anywhere.client.model.ModModelLoadingPlugin;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.debug.v1.renderer.DebugRendererRegistry;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -21,14 +22,13 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.color.item.ItemTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 
 import java.awt.Color;
-import java.util.Locale;
 
 public class PLAModClient implements ClientModInitializer {
 
@@ -37,6 +37,7 @@ public class PLAModClient implements ClientModInitializer {
         ModelLoadingPlugin.register(new ModModelLoadingPlugin());
         ItemTintSources.ID_MAPPER.put(RGBColorTintSource.ID, RGBColorTintSource.MAP_CODEC);
         RangeSelectItemModelProperties.ID_MAPPER.put(PLAMod.id("paint_opacity"), ModModelProvider.PaintOpacity.MAP_CODEC);
+        ConditionalItemModelProperties.ID_MAPPER.put(PLAMod.id("paint_brush_predicates"), PaintBrushPredicates.MAP_CODEC);
         MenuScreens.register(ModMenuTypes.PALETTE_MENU, PaletteScreen::new);
 
         ModClientNetworking.init();
@@ -69,19 +70,9 @@ public class PLAModClient implements ClientModInitializer {
                 return;
             }
 
-            int argb = itemStack.getOrDefault(ModComponents.ARGB_COLOR, Color.RED.getRGB());
-            boolean emissive = itemStack.has(ModComponents.EMISSIVE);
-            minecraft.gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), emissive));
-        });
-
-        ItemTooltipCallback.EVENT.register((stack, _, _, lines) -> {
-            if (stack.get(ModComponents.ARGB_COLOR) instanceof Integer argb) {
-                int opacity = (int) Math.round(ARGB.alpha(argb) / 255.0 * 100);
-                String hex = String.format("#%02x%02x%02x", ARGB.red(argb), ARGB.green(argb), ARGB.blue(argb)).toUpperCase(Locale.ROOT);
-
-                lines.add(Component.literal("Color: ").append(Component.literal(hex).withColor(argb)));
-                lines.add(Component.literal("Opacity: " + opacity + "%"));
-            }
+            PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
+            int argb = properties.hasActualColor() ? properties.argb() : Color.RED.getRGB();
+            minecraft.gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), properties.emissive()));
         });
 
         // I hate this, necessary since diff servers may need diff cached quads

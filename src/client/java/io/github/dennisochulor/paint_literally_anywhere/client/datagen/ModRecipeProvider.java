@@ -3,6 +3,7 @@ package io.github.dennisochulor.paint_literally_anywhere.client.datagen;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
@@ -13,7 +14,6 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.TransmuteRecipeBuilder;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
@@ -44,11 +44,13 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .group("paint_brush")
                         .save(output);
 
+                // todo figure out how to not override all PaintBrushProperties fields
                 TransmuteRecipeBuilder.transmute(
                         RecipeCategory.MISC,
                         Ingredient.of(ModItems.PAINT_BRUSH),
                         Ingredient.of(Items.GLOW_INK_SAC),
-                        new ItemStackTemplate(ModItems.PAINT_BRUSH, DataComponentPatch.builder().set(ModComponents.EMISSIVE, Unit.INSTANCE).build()))
+                        new ItemStackTemplate(ModItems.PAINT_BRUSH, DataComponentPatch.builder().set(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT.withEmissive(true)).build())
+                )
                         .unlockedBy(getHasName(Items.GLOW_INK_SAC), has(Items.GLOW_INK_SAC))
                         .unlockedBy(getHasName(ModItems.PAINT_BRUSH), has(ModItems.PAINT_BRUSH))
                         .group("paint_brush")

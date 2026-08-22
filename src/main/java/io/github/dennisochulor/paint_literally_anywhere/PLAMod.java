@@ -11,6 +11,7 @@ import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFilePa
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.item.v1.ItemComponentTooltipProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -35,6 +36,9 @@ public class PLAMod implements ModInitializer {
         ModBlockEntities.init();
         ModMenuTypes.init();
         ModAttachmentTypes.init();
+
+        ItemComponentTooltipProviderRegistry.addFirst(ModComponents.PAINT_BRUSH);
+
 
         ServerChunkEvents.CHUNK_LOAD.register((_, chunk, generated) -> {
             if (!generated) ChunkCanvasData.validateOnChunkLoad(chunk);

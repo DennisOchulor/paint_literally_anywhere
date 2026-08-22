@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import io.github.dennisochulor.paint_literally_anywhere.client.RGBColorTintSource;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.data.models.BlockModelGenerators;
@@ -45,8 +46,9 @@ public class ModModelProvider extends FabricModelProvider {
 
         @Override
         public float get(ItemStack itemStack, @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-            if (itemStack.get(ModComponents.ARGB_COLOR) instanceof Integer argb) {
-                return ARGB.alphaFloat(argb) * 100.0F; // 0-100%
+            PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
+            if (properties.hasActualColor()) {
+                return ARGB.alphaFloat(properties.argb()) * 100.0F; // 0-100%
             }
             else {
                 return 100; // default max opacity
@@ -121,12 +123,12 @@ public class ModModelProvider extends FabricModelProvider {
                 ModItems.PAINT_BRUSH,
                 ItemModelUtils.composite(
                         ItemModelUtils.conditional(
-                                ItemModelUtils.hasComponent(ModComponents.EMISSIVE),
+                                PaintBrushPredicates.isEmissive(),
                                 ItemModelUtils.rangeSelect(new PaintOpacity(), emissives),
                                 paintBrushStalk
                         ),
                         ItemModelUtils.conditional(
-                                ItemModelUtils.hasComponent(ModComponents.ARGB_COLOR),
+                               PaintBrushPredicates.hasColor(),
                                 ItemModelUtils.rangeSelect(new PaintOpacity(), paints),
                                 new EmptyModel.Unbaked()
                         )

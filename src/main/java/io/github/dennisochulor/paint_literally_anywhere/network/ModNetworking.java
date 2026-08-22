@@ -1,14 +1,10 @@
 package io.github.dennisochulor.paint_literally_anywhere.network;
 
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
-import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
-import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
-import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
-import io.github.dennisochulor.paint_literally_anywhere.item.PaletteMenu;
+import io.github.dennisochulor.paint_literally_anywhere.item.*;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Unit;
 import net.minecraft.world.item.ItemStack;
 
 import java.awt.Color;
@@ -34,10 +30,9 @@ public final class ModNetworking {
                 return;
             }
 
-            itemStack.set(ModComponents.ARGB_COLOR, payload.argb());
-
-            if (payload.emissive()) itemStack.set(ModComponents.EMISSIVE, Unit.INSTANCE);
-            else itemStack.remove(ModComponents.EMISSIVE);
+            PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT)
+                    .withArgb(payload.argb()).withEmissive(payload.emissive());
+            itemStack.set(ModComponents.PAINT_BRUSH, properties);
         });
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaletteMenuUpdatePacket.TYPE, ((payload, context) -> {

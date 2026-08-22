@@ -2,6 +2,7 @@ package io.github.dennisochulor.paint_literally_anywhere.client;
 
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaletteMenu;
 import io.github.dennisochulor.paint_literally_anywhere.network.ServerboundPaletteMenuUpdatePacket;
 import io.github.dennisochulor.paint_literally_anywhere.client.color_picker.ColorPickerWidget;
@@ -45,8 +46,8 @@ public class PaletteScreen extends AbstractContainerScreen<PaletteMenu> {
             @Override
             public void slotChanged(AbstractContainerMenu container, int slotIndex, ItemStack itemStack) {
                 if (slotIndex == PaletteMenu.INPUT_SLOT_INDEX && !itemStack.isEmpty()) {
-                    Integer color = itemStack.get(ModComponents.ARGB_COLOR);
-                    if (color != null) updateRequestedColor(new Color(color, true), true);
+                    PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
+                    if (properties.hasActualColor()) updateRequestedColor(new Color(properties.argb(), true), true);
                 }
             }
 

@@ -28,15 +28,14 @@ public class PaintBrushItem extends Item {
         ServerLevel level = player.level();
         BlockPos pos = packet.pos();
         ItemStack itemStack = player.getItemInHand(InteractionHand.MAIN_HAND);
-        Integer argb = itemStack.get(ModComponents.ARGB_COLOR);
-        boolean emissive = itemStack.has(ModComponents.EMISSIVE);
+        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
 
         // sanity checks - some are copied from vanilla's ServerboundUseItemOnPacket handling
         if (!player.connection.hasClientLoaded() ||
                 !player.isWithinBlockInteractionRange(pos, 1.0F) ||
                 !level.mayInteract(player, pos) ||
                 !itemStack.is(ModItems.PAINT_BRUSH) ||
-                argb == null ||
+                properties.argb() == PaintBrushProperties.EMPTY_COLOR ||
                 // ensure the clipped quad actually exist for the block state
                 !((BlockStateBaseExt) level.getBlockState(pos)).pla$quads(level, pos).contains(packet.template())
         ) {
@@ -44,7 +43,7 @@ public class PaintBrushItem extends Item {
         }
 
         boolean success = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos,
-                QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction()), argb, emissive);
+                QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction()), properties.argb(), properties.emissive());
 
         if (success) {
             itemStack.hurtAndBreak(1, player, InteractionHand.MAIN_HAND);
@@ -53,11 +52,10 @@ public class PaintBrushItem extends Item {
 
     @Override
     public Component getName(ItemStack itemStack) {
-        int rgb = itemStack.getComponents().getOrDefault(ModComponents.ARGB_COLOR, Color.WHITE.getRGB());
-        boolean emissive = itemStack.has(ModComponents.EMISSIVE);
+        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
         return Component.translatable(
-                emissive ? "item.paint_literally_anywhere.paint_brush.emissive" : "item.paint_literally_anywhere.paint_brush")
-                .withColor(rgb);
+                properties.emissive() ? "item.paint_literally_anywhere.paint_brush.emissive" : "item.paint_literally_anywhere.paint_brush")
+                .withColor(properties.argb() == PaintBrushProperties.EMPTY_COLOR ? Color.WHITE.getRGB() : properties.argb());
     }
 
     @Override
