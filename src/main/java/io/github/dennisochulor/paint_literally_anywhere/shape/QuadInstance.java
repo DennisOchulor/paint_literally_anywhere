@@ -7,6 +7,8 @@ import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.netty.buffer.ByteBuf;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
@@ -141,11 +143,11 @@ public record QuadInstance(
         int oldColor = pixels[index];
         q.add(new int[]{sr, sc});
 
-        // Change the color of the starting pixel
-        pixels[index] = newColor;
+        // Add the starting pixel
+        IntSet visitedPixels = new IntOpenHashSet();
+        visitedPixels.add(index);
 
         // Perform BFS
-        IntStream.Builder builder = IntStream.builder();
         while (!q.isEmpty()) {
             int[] front = q.poll();
             int x = front[0], y = front[1];
@@ -158,14 +160,16 @@ public record QuadInstance(
                 int i = index(nx, ny, cols);
 
                 // Check boundary conditions and color match
-                if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && pixels[i] == oldColor) {
-                    builder.accept(i);
+                if (nx >= 0 && nx < rows && ny >= 0 && ny < cols &&
+                        pixels[i] == oldColor && !visitedPixels.contains(i))
+                {
                     q.add(new int[]{nx, ny});
+                    visitedPixels.add(i);
                 }
             }
         }
 
-        return builder.build().toArray();
+        return visitedPixels.toIntArray();
     }
 
     private int[] getBrushIndices(int index, int row, int col, int brushSize) {
