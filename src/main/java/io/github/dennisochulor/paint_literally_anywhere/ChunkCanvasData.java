@@ -2,6 +2,8 @@ package io.github.dennisochulor.paint_literally_anywhere;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataAddPacket;
 import io.github.dennisochulor.paint_literally_anywhere.network.ClientboundChunkCanvasDataUpdatePacket;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
@@ -45,10 +47,9 @@ public record ChunkCanvasData(
     );
 
 
-    /**
-     * @return true if paint was successful
-     */
-    public static boolean paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos, int argb, boolean emissive) {
+
+    public static PaintBrushItem.PaintResult paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos,
+                                                         PaintBrushProperties properties, int remainingDurability) {
         if (chunk.getLevel().isClientSide()) throw new IllegalStateException("paintServer called on client!");
 
         var blocks = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>())).blocks();
@@ -62,21 +63,19 @@ public record ChunkCanvasData(
         }
 
         if (quad == null) {
-            quad = new QuadInstance(template, 16); // todo get from config
+            quad = new QuadInstance(template, properties.resolution());
             quads.add(quad);
         }
 
-        int indexPainted = quad.paintServer(localHitPos, argb, emissive);
-        if (indexPainted != -1) {
+        PaintBrushItem.PaintResult result = quad.paintServer(localHitPos, properties, remainingDurability);
+        if (result.pixelsPainted().length > 0) {
             chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
 
-            var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, indexPainted, argb, emissive);
+            var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, result.pixelsPainted(), properties.argb(), properties.emissive(), properties.resolution());
             PlayerLookup.tracking((ServerLevel) chunk.getLevel(), chunk.getPos()).forEach(player -> ServerPlayNetworking.send(player, updatePacket));
-            return true;
         }
-        else {
-            return false;
-        }
+
+        return result;
     }
 
     public static void paintClient(LevelChunk chunk, ClientboundChunkCanvasDataUpdatePacket packet) {
@@ -93,11 +92,14 @@ public record ChunkCanvasData(
         }
 
         if (quad == null) {
-            quad = new QuadInstance(packet.template(), 16); // todo get from config
+            quad = new QuadInstance(packet.template(), packet.resolution());
             quads.add(quad);
         }
 
-        quad.paintClient(packet.index(), packet.argb(), packet.emissive());
+        for (int index : packet.indices()) {
+            quad.directPaint(index, packet.argb(), packet.emissive());
+        }
+
         BlockState state = chunk.getBlockState(packet.pos());
         chunk.getLevel().sendBlockUpdated(packet.pos(), state, state, Block.UPDATE_ALL); // trigger chunk rebuild
     }

@@ -9,10 +9,10 @@ public final class ModItemIds {
     private ModItemIds() {}
 
 
-    public static final ResourceKey<Item> PALETTE = register("palette");
     public static final ResourceKey<Item> PAINT_BRUSH = register("paint_brush");
 
 
+    @SuppressWarnings("SameParameterValue")
     private static ResourceKey<Item> register(String name) {
         // Create the item key.
         return ResourceKey.create(Registries.ITEM, PLAMod.id(name));

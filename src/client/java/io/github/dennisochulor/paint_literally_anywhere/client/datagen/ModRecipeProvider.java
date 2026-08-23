@@ -13,7 +13,6 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.TransmuteRecipeBuilder;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
@@ -55,15 +54,6 @@ public class ModRecipeProvider extends FabricRecipeProvider {
                         .unlockedBy(getHasName(ModItems.PAINT_BRUSH), has(ModItems.PAINT_BRUSH))
                         .group("paint_brush")
                         .save(output, PLAMod.MOD_ID + ":paint_brush_emissive");
-
-                shaped(RecipeCategory.MISC, ModItems.PALETTE)
-                        .define('W', Items.WOOL.white())
-                        .define('D', ItemTags.DYES)
-                        .pattern("DDD")
-                        .pattern("WWW")
-                        .pattern("   ")
-                        .unlockedBy(getHasName(Items.WOOL.white()), has(Items.WOOL.white()))
-                        .save(output);
             }
         };
     }

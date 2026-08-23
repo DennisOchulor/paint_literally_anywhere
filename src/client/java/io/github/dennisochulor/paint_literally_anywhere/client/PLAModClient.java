@@ -1,34 +1,37 @@
 package io.github.dennisochulor.paint_literally_anywhere.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import io.github.dennisochulor.paint_literally_anywhere.ModMenuTypes;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.client.datagen.ModModelProvider;
 import io.github.dennisochulor.paint_literally_anywhere.client.datagen.PaintBrushPredicates;
 import io.github.dennisochulor.paint_literally_anywhere.client.debug.QuadsDebugRenderer;
 import io.github.dennisochulor.paint_literally_anywhere.client.model.ModModelLoadingPlugin;
+import io.github.dennisochulor.paint_literally_anywhere.client.screen.PaintBrushSettingsScreen;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
-import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
+import io.github.dennisochulor.paint_literally_anywhere.item.ModItemIds;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
+import io.github.dennisochulor.paint_literally_anywhere.network.ServerboundPaintPacket;
+import io.github.dennisochulor.paint_literally_anywhere.shape.BlockHitResultExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
+import io.github.dennisochulor.paint_literally_anywhere.shape.ShapeUtil;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.debug.v1.renderer.DebugRendererRegistry;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.event.client.player.ClientPreAttackCallback;
+import net.fabricmc.fabric.api.event.player.ItemEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.item.ItemTintSources;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperties;
 import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperties;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
 
-import java.awt.Color;
+import java.util.Objects;
 
 public class PLAModClient implements ClientModInitializer {
 
@@ -38,41 +41,36 @@ public class PLAModClient implements ClientModInitializer {
         ItemTintSources.ID_MAPPER.put(RGBColorTintSource.ID, RGBColorTintSource.MAP_CODEC);
         RangeSelectItemModelProperties.ID_MAPPER.put(PLAMod.id("paint_opacity"), ModModelProvider.PaintOpacity.MAP_CODEC);
         ConditionalItemModelProperties.ID_MAPPER.put(PLAMod.id("paint_brush_predicates"), PaintBrushPredicates.MAP_CODEC);
-        MenuScreens.register(ModMenuTypes.PALETTE_MENU, PaletteScreen::new);
 
         ModClientNetworking.init();
 
-        KeyMapping.Category keyBindingCategory = KeyMapping.Category.register(PLAMod.id("keybinds"));
-        KeyMapping creativeColorPickerKeybind = KeyMappingHelper.registerKeyMapping(
-                new KeyMapping("key.paint_literally_anywhere.creative_color_picker",
-                        InputConstants.Type.KEYSYM,
-                        InputConstants.KEY_B,
-                        keyBindingCategory
-                )
-        );
-
-        ClientTickEvents.START_CLIENT_TICK.register(minecraft -> {
-            if (!creativeColorPickerKeybind.consumeClick()) {
-                return;
-            }
-
-            //noinspection StatementWithEmptyBody
-            while (creativeColorPickerKeybind.consumeClick()); //consume additional presses
-
-            LocalPlayer player = minecraft.player;
-            if (player == null || !player.isCreative() || minecraft.gui.screen() != null) {
-                return;
-            }
-
+        ClientPreAttackCallback.EVENT.register((minecraft, player, _) -> {
             ItemStack itemStack = player.getMainHandItem();
-            if (!itemStack.is(ModItems.PAINT_BRUSH)) {
-                player.sendOverlayMessage(Component.literal("Hold a paint brush in your mainhand!"));
-                return;
+
+            if (itemStack.is(ModItemIds.PAINT_BRUSH)) {
+                ScopedValue.where(ShapeUtil.USE_ACCURATE_SHAPE, player).run(() -> {
+                    if (player.raycastHitResult(1.0F, Objects.requireNonNull(minecraft.getCameraEntity())) instanceof BlockHitResult blockHitResult) {
+                        if (((BlockHitResultExt) blockHitResult).pla$clippedQuad() != null) {
+                            // clipped a quad, now tell the server with a custom packet
+                            ClientPlayNetworking.send(new ServerboundPaintPacket(blockHitResult));
+                        }
+                    }
+                });
+                return true;
             }
+
+            return false;
+        });
+
+        ItemEvents.USE.register((level, player, interactionHand) -> {
+            if (!level.isClientSide()) return null;
+            if (interactionHand != InteractionHand.MAIN_HAND) return null;
+            ItemStack itemStack = player.getItemInHand(interactionHand);
+            if (!itemStack.is(ModItemIds.PAINT_BRUSH)) return null;
 
             PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
-            int argb = properties.hasActualColor() ? properties.argb() : Color.RED.getRGB();
-            minecraft.gui.setScreen(new CreativeColorPickerScreen(new Color(argb, true), properties.emissive()));
+            Minecraft.getInstance().gui.setScreen(new PaintBrushSettingsScreen(properties));
+            return InteractionResult.CONSUME;
         });
 
         // I hate this, necessary since diff servers may need diff cached quads

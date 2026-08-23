@@ -36,8 +36,6 @@ public class ModModelProvider extends FabricModelProvider {
 
     @Override
     public void generateItemModels(ItemModelGenerators itemModelGenerators) {
-        itemModelGenerators.generateFlatItem(ModItems.PALETTE, ModelTemplates.FLAT_ITEM);
-
         paintBrush(itemModelGenerators);
     }
 

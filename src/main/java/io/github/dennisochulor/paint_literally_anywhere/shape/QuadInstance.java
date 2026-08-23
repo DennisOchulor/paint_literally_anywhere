@@ -3,14 +3,21 @@ package io.github.dennisochulor.paint_literally_anywhere.shape;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dennisochulor.paint_literally_anywhere.OddCodecs;
+import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
+import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import java.util.BitSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.stream.IntStream;
 
 public record QuadInstance(
         QuadTemplate template,
@@ -42,6 +49,10 @@ public record QuadInstance(
             QuadInstance::new
     );
 
+    private static final int[] EMPTY_ARRAY = new int[0];
+    private static final PaintBrushItem.PaintResult EMPTY_RESULT = new PaintBrushItem.PaintResult(EMPTY_ARRAY, null);
+    private static final PaintBrushItem.PaintResult DURABILITY_RESULT = new PaintBrushItem.PaintResult(EMPTY_ARRAY, "Insufficient durability");
+
 
     public static int index(int row, int col, int totalCols) {
         return row * totalCols + col;
@@ -61,7 +72,7 @@ public record QuadInstance(
     /**
      * @return the painted index, or -1 if the pixel was already in the requested state.
      */
-    public int paintServer(Vector3fc localHitPos, int argb, boolean emissive) {
+    public PaintBrushItem.PaintResult paintServer(Vector3fc localHitPos, PaintBrushProperties properties, int remainingDurability) {
         // Find distance from a point to a line
         Vector3f v0ToHitPos = new Vector3f();
         localHitPos.sub(template.v0(), v0ToHitPos);
@@ -78,18 +89,107 @@ public record QuadInstance(
 
         int index = index(row, col, this.cols);
 
-        if (pixels[index] == argb && emissive == emissiveData.get(index)) {
-            return -1;
+        if (index >= pixels.length) {
+            PLAMod.LOGGER.warn("Attempt to paint out-of-bounds index {} at {} for template {}", index, localHitPos, template);
+            return EMPTY_RESULT;
         }
-        else {
-            pixels[index] = argb;
-            emissiveData.set(index, emissive);
-            return index;
+
+        if (pixels[index] == properties.argb() && properties.emissive() == emissiveData.get(index)) {
+            return EMPTY_RESULT;
         }
+
+        int[] pixelsToPaint = properties.tool() == PaintBrushProperties.Tool.FILL ?
+                getFillIndices(index, row, col, properties.argb(), properties.emissive()) : getBrushIndices(index, row, col, properties.brushSize());
+
+        if (pixelsToPaint.length > remainingDurability) {
+            return DURABILITY_RESULT;
+        }
+
+        IntStream.Builder builder = IntStream.builder();
+        for (int pixel : pixelsToPaint) {
+            if (directPaint(pixel, properties.argb(), properties.emissive())) {
+                builder.accept(pixel);
+            }
+        }
+
+        int[] pixelsPainted = builder.build().toArray();
+        return new PaintBrushItem.PaintResult(pixelsPainted, null);
     }
 
-    public void paintClient(int index, int argb, boolean emissive) {
+    public boolean directPaint(int index, int argb, boolean emissive) {
+        if (pixels[index] == argb && emissive == emissiveData.get(index)) {
+            return false;
+        }
+
         pixels[index] = argb;
         emissiveData.set(index, emissive);
+        return true;
+    }
+
+    private int[] getFillIndices(int index, int sr, int sc, int newColor, boolean emissive) {
+        // https://www.geeksforgeeks.org/dsa/flood-fill-algorithm/
+
+        // If the starting pixel already has the new color
+        if (pixels[index] == newColor && emissive == emissiveData.get(index)) {
+            return EMPTY_ARRAY;
+        }
+
+        // Direction vectors for traversing 4 directions
+        int[][] dir = { {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+
+        Queue<int[]> q = new LinkedList<>();
+        int oldColor = pixels[index];
+        q.add(new int[]{sr, sc});
+
+        // Change the color of the starting pixel
+        pixels[index] = newColor;
+
+        // Perform BFS
+        IntStream.Builder builder = IntStream.builder();
+        while (!q.isEmpty()) {
+            int[] front = q.poll();
+            int x = front[0], y = front[1];
+
+            // Traverse all 4 directions
+            for (int[] it : dir) {
+                int nx = x + it[0];
+                int ny = y + it[1];
+
+                int i = index(nx, ny, cols);
+
+                // Check boundary conditions and color match
+                if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && pixels[i] == oldColor) {
+                    builder.accept(i);
+                    q.add(new int[]{nx, ny});
+                }
+            }
+        }
+
+        return builder.build().toArray();
+    }
+
+    private int[] getBrushIndices(int index, int row, int col, int brushSize) {
+        if (brushSize == 1) return new int[]{index};
+
+        // odd: floor(brushSize/2)
+        // even: brushSize/2 - 1
+        int steps = brushSize % 2 == 0 ? brushSize / 2 - 1 : brushSize / 2;
+        int startRow = Mth.clamp(row - steps, 0, rows - 1);
+        int startCol = Mth.clamp(col - steps, 0, cols - 1);
+        int endRow = Mth.clamp(row + steps, 0, rows - 1);
+        int endCol = Mth.clamp(col + steps, 0, cols - 1);
+
+        int size = (endRow - startRow + 1) * (endCol - startCol + 1);
+        int[] pixelsToPaint = new int[size];
+
+        int i = 0;
+        for (int r = startRow; r <= endRow; r++) {
+            for (int c = startCol; c <= endCol; c++) {
+                pixelsToPaint[i] = index(r, c, cols);
+                i++;
+            }
+        }
+
+        return pixelsToPaint;
     }
 }

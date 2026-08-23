@@ -13,7 +13,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipProvider;
 
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public record PaintBrushProperties(
@@ -25,8 +27,14 @@ public record PaintBrushProperties(
 ) implements TooltipProvider {
 
     public enum Tool implements StringRepresentable {
-        BRUSH,
-        FILL;
+        BRUSH("Paints according to brush size"),
+        FILL("Fills an entire area of pixels");
+
+        public final Component component;
+
+        Tool(String tooltip) {
+            component = Component.literal(tooltip);
+        }
 
         @Override
         public String getSerializedName() {
@@ -55,8 +63,8 @@ public record PaintBrushProperties(
 
     public static final int MIN_BRUSH_SIZE = 1;
     public static final int MAX_BRUSH_SIZE = 10;
-    public static final int MIN_RESOLUTION_SIZE = 8;
-    public static final int MAX_RESOLUTION_SIZE = 128;
+    public static final int[] RESOLUTION_VALUES = {8, 16, 32, 64, 128};
+    private static final Set<Integer> RESOLUTION_VALUES_SET = Set.of(8, 16, 32, 64, 128);
     public static final int EMPTY_COLOR = 0;
     public static final PaintBrushProperties DEFAULT = new PaintBrushProperties(EMPTY_COLOR, false, 1, 16, Tool.BRUSH);
 
@@ -66,8 +74,8 @@ public record PaintBrushProperties(
         if (brushSize < MIN_BRUSH_SIZE || brushSize > MAX_BRUSH_SIZE) {
             throw new IllegalArgumentException("Brush size must be >%d and <%d".formatted(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE));
         }
-        if (resolution < MIN_RESOLUTION_SIZE || resolution > MAX_RESOLUTION_SIZE) {
-            throw new IllegalArgumentException("Resolution must be >%d and <%d".formatted(MIN_RESOLUTION_SIZE, MAX_RESOLUTION_SIZE));
+        if (!RESOLUTION_VALUES_SET.contains(resolution)) {
+            throw new IllegalArgumentException("Resolution must be one of " + Arrays.toString(RESOLUTION_VALUES));
         }
     }
 

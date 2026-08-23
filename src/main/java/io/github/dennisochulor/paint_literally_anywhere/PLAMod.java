@@ -34,7 +34,6 @@ public class PLAMod implements ModInitializer {
         ModItems.init();
         ModBlocks.init();
         ModBlockEntities.init();
-        ModMenuTypes.init();
         ModAttachmentTypes.init();
 
         ItemComponentTooltipProviderRegistry.addFirst(ModComponents.PAINT_BRUSH);

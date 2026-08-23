@@ -1,7 +1,4 @@
 {
-  "item.paint_literally_anywhere.palette": "Palette",
   "item.paint_literally_anywhere.paint_brush": "Paint Brush",
-  "item.paint_literally_anywhere.paint_brush.emissive": "Emissive Paint Brush",
-  "key.category.paint_literally_anywhere.keybinds": "Paint Literally Anywhere (PLA)",
-  "key.paint_literally_anywhere.creative_color_picker": "Creative color picker"
+  "item.paint_literally_anywhere.paint_brush.emissive": "Emissive Paint Brush"
 }
