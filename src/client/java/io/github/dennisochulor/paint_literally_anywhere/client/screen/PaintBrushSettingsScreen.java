@@ -78,8 +78,8 @@ public class PaintBrushSettingsScreen extends Screen {
     protected void init() {
         super.init();
 
-        colorPickerWidget.setWidth((int) (width * 0.8));
-        colorPickerWidget.setHeight((int) (height * 0.4));
+        colorPickerWidget.setWidth((int) (width * 0.5));
+        colorPickerWidget.setHeight((int) (height * 0.35));
 
         root.arrangeElements();
         FrameLayout.alignInRectangle(root, 0, 0, width, height, 0.5F, 0.1F);

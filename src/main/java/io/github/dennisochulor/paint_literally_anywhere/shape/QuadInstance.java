@@ -74,7 +74,7 @@ public record QuadInstance(
     /**
      * @return the painted index, or -1 if the pixel was already in the requested state.
      */
-    public PaintBrushItem.PaintResult paintServer(Vector3fc localHitPos, PaintBrushProperties properties, int remainingDurability) {
+    public PaintBrushItem.PaintResult paintServer(Vector3fc localHitPos, PaintBrushProperties properties, int remainingDurability, boolean shouldUseDurability) {
         // Find distance from a point to a line
         Vector3f v0ToHitPos = new Vector3f();
         localHitPos.sub(template.v0(), v0ToHitPos);
@@ -96,14 +96,10 @@ public record QuadInstance(
             return EMPTY_RESULT;
         }
 
-        if (pixels[index] == properties.argb() && properties.emissive() == emissiveData.get(index)) {
-            return EMPTY_RESULT;
-        }
-
         int[] pixelsToPaint = properties.tool() == PaintBrushProperties.Tool.FILL ?
                 getFillIndices(index, row, col, properties.argb(), properties.emissive()) : getBrushIndices(index, row, col, properties.brushSize());
 
-        if (pixelsToPaint.length > remainingDurability) {
+        if (shouldUseDurability && pixelsToPaint.length > remainingDurability) {
             return DURABILITY_RESULT;
         }
 
@@ -177,11 +173,18 @@ public record QuadInstance(
 
         // odd: floor(brushSize/2)
         // even: brushSize/2 - 1
-        int steps = brushSize % 2 == 0 ? brushSize / 2 - 1 : brushSize / 2;
-        int startRow = Mth.clamp(row - steps, 0, rows - 1);
-        int startCol = Mth.clamp(col - steps, 0, cols - 1);
-        int endRow = Mth.clamp(row + steps, 0, rows - 1);
-        int endCol = Mth.clamp(col + steps, 0, cols - 1);
+        int stepsBack = brushSize % 2 == 0 ? brushSize / 2 - 1 : brushSize / 2;
+        int uncheckedStartRow = row - stepsBack;
+        int uncheckedStartCol = col - stepsBack;
+
+        int startRow = Mth.clamp(uncheckedStartRow, 0, rows - 1);
+        int startCol = Mth.clamp(uncheckedStartCol, 0, cols - 1);
+
+        int underflowRow = uncheckedStartRow < 0 ? Math.abs(uncheckedStartRow) : 0;
+        int underflowCol = uncheckedStartCol < 0 ? Math.abs(uncheckedStartCol) : 0;
+
+        int endRow = Mth.clamp(startRow + brushSize - underflowRow - 1, 0, rows - 1);
+        int endCol = Mth.clamp(startCol + brushSize - underflowCol - 1, 0, cols - 1);
 
         int size = (endRow - startRow + 1) * (endCol - startCol + 1);
         int[] pixelsToPaint = new int[size];

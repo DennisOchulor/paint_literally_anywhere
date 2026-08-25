@@ -49,7 +49,7 @@ public record ChunkCanvasData(
 
 
     public static PaintBrushItem.PaintResult paintServer(LevelChunk chunk, QuadTemplate template, BlockPos blockPos, Vector3fc localHitPos,
-                                                         PaintBrushProperties properties, int remainingDurability) {
+                                                         PaintBrushProperties properties, int remainingDurability, boolean shouldUseDurability) {
         if (chunk.getLevel().isClientSide()) throw new IllegalStateException("paintServer called on client!");
 
         var blocks = chunk.getAttachedOrCreate(ModAttachmentTypes.CHUNK_CANVAS_DATA, () -> new ChunkCanvasData(new HashMap<>())).blocks();
@@ -67,7 +67,7 @@ public record ChunkCanvasData(
             quads.add(quad);
         }
 
-        PaintBrushItem.PaintResult result = quad.paintServer(localHitPos, properties, remainingDurability);
+        PaintBrushItem.PaintResult result = quad.paintServer(localHitPos, properties, remainingDurability, shouldUseDurability);
         if (result.pixelsPainted().length > 0) {
             chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
 

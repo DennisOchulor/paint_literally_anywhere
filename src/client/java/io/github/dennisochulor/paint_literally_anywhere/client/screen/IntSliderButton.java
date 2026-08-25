@@ -25,6 +25,8 @@ public class IntSliderButton extends AbstractSliderButton {
         this.actualValue = initialValue;
         this.values = values;
         this.label = label;
+
+        updateMessage();
     }
 
     @Override

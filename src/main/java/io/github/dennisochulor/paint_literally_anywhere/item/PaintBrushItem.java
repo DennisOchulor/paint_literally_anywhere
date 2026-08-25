@@ -68,7 +68,7 @@ public class PaintBrushItem extends Item {
 
         Vector3fc localHitPos = QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction());
         int remainingDurability = itemStack.getMaxDamage() - itemStack.getDamageValue();
-        PaintResult result = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos, localHitPos, properties, remainingDurability);
+        PaintResult result = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos, localHitPos, properties, remainingDurability, !player.isCreative());
 
         if (result.pixelsPainted().length > 0) {
             itemStack.hurtAndBreak(result.pixelsPainted().length, player, InteractionHand.MAIN_HAND);
