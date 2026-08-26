@@ -117,7 +117,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
 
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                int i = QuadInstance.index(row, col, cols);
+                int i = instance.index(row, col);
                 int argb = pixels[i];
                 boolean emissive = emissiveData.get(i);
 

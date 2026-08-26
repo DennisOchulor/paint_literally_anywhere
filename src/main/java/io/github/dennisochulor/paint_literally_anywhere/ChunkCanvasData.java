@@ -20,6 +20,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.joml.Vector3fc;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -208,5 +209,19 @@ public record ChunkCanvasData(
 
         // Since this is called on server chunk load, supposedly no clients have been sent the chunk yet.
         // So no manual syncing of anything is needed, let initial sync handle it.
+    }
+
+    public static @Nullable QuadInstance getQuadInstance(LevelChunk chunk, BlockPos pos, QuadTemplate template) {
+        if (chunk.getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA) instanceof ChunkCanvasData data) {
+            if (data.blocks().get(pos) instanceof List<QuadInstance> instances) {
+                for (QuadInstance instance : instances) {
+                    if (instance.template().equals(template)) {
+                        return instance;
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

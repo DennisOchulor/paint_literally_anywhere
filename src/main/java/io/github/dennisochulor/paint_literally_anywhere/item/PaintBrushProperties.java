@@ -28,7 +28,7 @@ public record PaintBrushProperties(
 
     public enum Tool implements StringRepresentable {
         BRUSH("Paints according to brush size"),
-        FILL("Fills an entire area of pixels");
+        FILL("Fills all adjacent pixels of the same color");
 
         public final Component component;
 

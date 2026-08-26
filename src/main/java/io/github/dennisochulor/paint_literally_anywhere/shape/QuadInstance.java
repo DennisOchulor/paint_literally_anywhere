@@ -56,12 +56,6 @@ public record QuadInstance(
     private static final PaintBrushItem.PaintResult DURABILITY_RESULT = new PaintBrushItem.PaintResult(EMPTY_ARRAY, "Insufficient durability");
 
 
-    public static int index(int row, int col, int totalCols) {
-        return row * totalCols + col;
-    }
-
-
-
     public QuadInstance(QuadTemplate template, int resolution) {
         float resPixelLength = 1.0F / resolution;
         int rows = (int) Math.ceil(template.rowVector().length() / resPixelLength);
@@ -71,10 +65,9 @@ public record QuadInstance(
         this(template, rows, cols, resolution, new int[numOfPixels], new BitSet(numOfPixels));
     }
 
-    /**
-     * @return the painted index, or -1 if the pixel was already in the requested state.
-     */
-    public PaintBrushItem.PaintResult paintServer(Vector3fc localHitPos, PaintBrushProperties properties, int remainingDurability, boolean shouldUseDurability) {
+    public record RowCol(int row, int col) {}
+
+    public RowCol getRowCol(Vector3fc localHitPos) {
         // Find distance from a point to a line
         Vector3f v0ToHitPos = new Vector3f();
         localHitPos.sub(template.v0(), v0ToHitPos);
@@ -89,7 +82,25 @@ public record QuadInstance(
         int col = (int) (colDistance / colLength * this.cols);
         int row = (int) (rowDistance / rowLength * this.rows);
 
-        int index = index(row, col, this.cols);
+        return new RowCol(row, col);
+    }
+
+    public int index(int row, int col) {
+        return row * cols + col;
+    }
+
+    public int index(RowCol rowCol) {
+        return index(rowCol.row(), rowCol.col());
+    }
+
+    /**
+     * @return the painted index, or -1 if the pixel was already in the requested state.
+     */
+    public PaintBrushItem.PaintResult paintServer(Vector3fc localHitPos, PaintBrushProperties properties, int remainingDurability, boolean shouldUseDurability) {
+        RowCol rowCol = getRowCol(localHitPos);
+        int row = rowCol.row();
+        int col = rowCol.col();
+        int index = index(row, col);
 
         if (index >= pixels.length) {
             PLAMod.LOGGER.warn("Attempt to paint out-of-bounds index {} at {} for template {}", index, localHitPos, template);
@@ -153,7 +164,7 @@ public record QuadInstance(
                 int nx = x + it[0];
                 int ny = y + it[1];
 
-                int i = index(nx, ny, cols);
+                int i = index(nx, ny);
 
                 // Check boundary conditions and color match
                 if (nx >= 0 && nx < rows && ny >= 0 && ny < cols &&
@@ -192,7 +203,7 @@ public record QuadInstance(
         int i = 0;
         for (int r = startRow; r <= endRow; r++) {
             for (int c = startCol; c <= endCol; c++) {
-                pixelsToPaint[i] = index(r, c, cols);
+                pixelsToPaint[i] = index(r, c);
                 i++;
             }
         }
