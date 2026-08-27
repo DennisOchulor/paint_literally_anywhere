@@ -1,13 +1,8 @@
 package io.github.dennisochulor.paint_literally_anywhere.network;
 
-import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
-import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
-import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 
 public final class ModNetworking {
     private ModNetworking() {}
@@ -20,19 +15,11 @@ public final class ModNetworking {
         PayloadTypeRegistry.clientboundPlay().register(ClientboundChunkCanvasDataInitialSyncPacket.TYPE, ClientboundChunkCanvasDataInitialSyncPacket.STREAM_CODEC);
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintbrushUpdatePacket.TYPE, (payload, context) -> {
-            ServerPlayer player = context.player();
-            ItemStack itemStack = player.getMainHandItem();
-
-            if (itemStack.getItem() != ModItems.PAINT_BRUSH) {
-                PLAMod.LOGGER.warn("Received paintbrush update packet from player {} not holding paintbrush in main hand!", player);
-                return;
-            }
-
-            itemStack.set(ModComponents.PAINT_BRUSH, payload.properties());
+            PaintBrushItem.handlePaintbrushUpdatePacket(payload, context.player());
         });
 
         ServerPlayNetworking.registerGlobalReceiver(ServerboundPaintPacket.TYPE, ((payload, context) -> {
-            PaintBrushItem.handlePacket(payload, context.player());
+            PaintBrushItem.handlePaintPacket(payload, context.player());
         }));
     }
 }

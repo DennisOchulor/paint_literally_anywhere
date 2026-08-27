@@ -117,8 +117,7 @@ public final class PaintBrushClientInteractions {
 
         if (handleEyedropper((LocalPlayer) player, itemStack)) return InteractionResult.CONSUME;
 
-        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
-        Minecraft.getInstance().gui.setScreen(new PaintBrushSettingsScreen(properties, itemStack));
+        Minecraft.getInstance().gui.setScreen(new PaintBrushSettingsScreen(itemStack, player));
         return InteractionResult.CONSUME;
     }
 
