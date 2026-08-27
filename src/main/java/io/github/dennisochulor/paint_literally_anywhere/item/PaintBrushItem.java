@@ -70,7 +70,7 @@ public class PaintBrushItem extends Item {
         int remainingDurability = itemStack.getMaxDamage() - itemStack.getDamageValue();
         PaintResult result = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos, localHitPos, properties, remainingDurability, !player.isCreative());
 
-        if (result.pixelsPainted().length > 0) {
+        if (properties.tool().consumesDurability && result.pixelsPainted().length > 0) {
             itemStack.hurtAndBreak(result.pixelsPainted().length, player, InteractionHand.MAIN_HAND);
         }
         if (result.error() != null) {

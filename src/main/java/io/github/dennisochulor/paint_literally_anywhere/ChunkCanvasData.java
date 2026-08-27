@@ -72,7 +72,14 @@ public record ChunkCanvasData(
         if (result.pixelsPainted().length > 0) {
             chunk.markUnsaved(); // ensure attachment saves properly since we might not have called setAttached()
 
-            var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, result.pixelsPainted(), properties.argb(), properties.emissive(), properties.resolution());
+            int argb = properties.argb();
+            boolean emissive = properties.emissive();
+            if (properties.tool() == PaintBrushProperties.Tool.ERASER) {
+                argb = PaintBrushProperties.EMPTY_COLOR;
+                emissive = false;
+            }
+
+            var updatePacket = new ClientboundChunkCanvasDataUpdatePacket(blockPos, template, result.pixelsPainted(), argb, emissive, properties.resolution());
             PlayerLookup.tracking((ServerLevel) chunk.getLevel(), chunk.getPos()).forEach(player -> ServerPlayNetworking.send(player, updatePacket));
         }
 

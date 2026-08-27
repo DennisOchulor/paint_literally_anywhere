@@ -27,13 +27,16 @@ public record PaintBrushProperties(
 ) implements TooltipProvider {
 
     public enum Tool implements StringRepresentable {
-        BRUSH("Paints according to brush size"),
-        FILL("Fills all adjacent pixels of the same color");
+        BRUSH("Paints according to brush size", true),
+        FILL("Fills all adjacent pixels of the same color", true),
+        ERASER("Removes paint, does not consume durability", false);
 
         public final Component component;
+        public final boolean consumesDurability;
 
-        Tool(String tooltip) {
-            component = Component.literal(tooltip);
+        Tool(String tooltip, boolean consumesDurability) {
+            this.component = Component.literal(tooltip);
+            this.consumesDurability = consumesDurability;
         }
 
         @Override

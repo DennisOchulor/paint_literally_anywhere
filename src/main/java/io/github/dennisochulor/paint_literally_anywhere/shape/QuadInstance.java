@@ -107,16 +107,25 @@ public record QuadInstance(
             return EMPTY_RESULT;
         }
 
-        int[] pixelsToPaint = properties.tool() == PaintBrushProperties.Tool.FILL ?
-                getFillIndices(index, row, col, properties.argb(), properties.emissive()) : getBrushIndices(index, row, col, properties.brushSize());
+        int[] pixelsToPaint = switch (properties.tool()) {
+            case FILL -> getFillIndices(index, row, col, properties.argb(), properties.emissive());
+            case BRUSH, ERASER -> getBrushIndices(index, row, col, properties.brushSize());
+        };
 
         if (shouldUseDurability && pixelsToPaint.length > remainingDurability) {
             return DURABILITY_RESULT;
         }
 
+        int argb = properties.argb();
+        boolean emissive = properties.emissive();
+        if (properties.tool() == PaintBrushProperties.Tool.ERASER) {
+            argb = PaintBrushProperties.EMPTY_COLOR;
+            emissive = false;
+        }
+
         IntStream.Builder builder = IntStream.builder();
         for (int pixel : pixelsToPaint) {
-            if (directPaint(pixel, properties.argb(), properties.emissive())) {
+            if (directPaint(pixel, argb, emissive)) {
                 builder.accept(pixel);
             }
         }
