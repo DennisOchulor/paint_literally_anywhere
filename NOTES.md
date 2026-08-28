@@ -10,7 +10,8 @@ Client Item
 ---
 
 **ToDo (features):**
-- Resolution, brush size, fill, color picker (incl eyedropper)
+- Consider clicking images directly to select tool
+- Figure put dye algorithm
 - Somehow transfer pixels when block state changes in certain ways
   - e.g. flipping trapdoors
 
@@ -19,4 +20,4 @@ Client Item
 **ToDo (bugs):**
 - BEs that render entirely via BER still use VoxelShape
   - see skulls, banners
-- rightClickDelay packet spam
+- left click packet spam?
