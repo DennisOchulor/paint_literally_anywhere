@@ -110,8 +110,10 @@ public class PaintBrushItem extends Item {
                 }
             }
             if (needsDyes) {
-                requiredDyes = getRequiredDyes(new Color(newProperties.argb()));
-                firstDyeSlot = inventory.findSlotMatchingItem(requiredDyes.getFirst());
+                requiredDyes = getRequiredDyesIfNeeded(new Color(originalProperties.argb()), new Color(newProperties.argb()));
+                if (!requiredDyes.getFirst().isEmpty()) {
+                    firstDyeSlot = inventory.findSlotMatchingItem(requiredDyes.getFirst());
+                }
                 if (!requiredDyes.getSecond().isEmpty()) {
                     secondDyeSlot = inventory.findSlotMatchingItem(requiredDyes.getSecond());
                 }
@@ -132,7 +134,26 @@ public class PaintBrushItem extends Item {
         itemStack.set(ModComponents.PAINT_BRUSH, newProperties);
     }
 
-    public static Pair<ItemStack, ItemStack> getRequiredDyes(Color requestedColor) {
+    public static Pair<ItemStack, ItemStack> getRequiredDyesIfNeeded(Color oldColor, Color newColor) {
+        Pair<ItemStack, ItemStack> oldDyes = getRequiredDyes(oldColor);
+        Pair<ItemStack, ItemStack> newDyes = getRequiredDyes(newColor);
+
+        // Find whether the old dyes have all the new dyes
+        boolean hasFirst = newDyes.getFirst().isEmpty() || ItemStack.isSameItemSameComponents(newDyes.getFirst(), oldDyes.getFirst()) ||
+                ItemStack.isSameItemSameComponents(newDyes.getFirst(), oldDyes.getSecond());
+
+        boolean hasSecond = newDyes.getSecond().isEmpty() || ItemStack.isSameItemSameComponents(newDyes.getSecond(), oldDyes.getFirst()) ||
+                ItemStack.isSameItemSameComponents(newDyes.getSecond(), oldDyes.getSecond());
+
+        if (hasFirst) {
+            return new Pair<>(hasSecond ? ItemStack.EMPTY : newDyes.getSecond(), ItemStack.EMPTY);
+        }
+        else {
+            return new Pair<>(newDyes.getFirst(), hasSecond ? ItemStack.EMPTY : newDyes.getSecond());
+        }
+    }
+
+    private static Pair<ItemStack, ItemStack> getRequiredDyes(Color requestedColor) {
         // sort from closest to furthest from requestedColor
         List<Color> sortedDyeColors = COLOR_TO_DYE_MAP.keySet().stream()
                 .sorted(Comparator.comparingDouble(color -> approxDistanceBetweenRGBValues(color, requestedColor))).toList();

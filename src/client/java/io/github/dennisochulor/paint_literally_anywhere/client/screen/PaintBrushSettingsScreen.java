@@ -200,7 +200,7 @@ public class PaintBrushSettingsScreen extends Screen {
 
 
     private void onColorChange(Color color, boolean fromUserInput) {
-        Pair<ItemStack, ItemStack> dyes = PaintBrushItem.getRequiredDyes(color);
+        Pair<ItemStack, ItemStack> dyes = PaintBrushItem.getRequiredDyesIfNeeded(new Color(originalProperties.argb()), color);
         requiredItems[0] = dyes.getFirst();
         requiredItems[1] = dyes.getSecond();
         requiredItems[2] = ItemStack.EMPTY;
