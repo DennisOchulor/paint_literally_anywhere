@@ -169,7 +169,7 @@ public class PaintBrushSettingsScreen extends Screen {
 
             if (!itemStack.isEmpty()) {
                 int x1 = x + (i * 20);
-                int y1 = y + 60;
+                int y1 = y + 55;
                 graphics.item(itemStack, x1, y1);
 
                 boolean hasItem = player.hasInfiniteMaterials() ||

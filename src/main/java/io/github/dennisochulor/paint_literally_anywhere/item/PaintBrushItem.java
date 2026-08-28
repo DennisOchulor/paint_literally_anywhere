@@ -7,6 +7,7 @@ import io.github.dennisochulor.paint_literally_anywhere.network.ServerboundPaint
 import io.github.dennisochulor.paint_literally_anywhere.network.ServerboundPaintbrushUpdatePacket;
 import io.github.dennisochulor.paint_literally_anywhere.shape.BlockStateBaseExt;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
+import it.unimi.dsi.fastutil.ints.Int2DoubleFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
@@ -31,6 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class PaintBrushItem extends Item {
     private static final Map<Color, Item> COLOR_TO_DYE_MAP;
@@ -39,7 +42,7 @@ public class PaintBrushItem extends Item {
         // DyeColor.VALUES.textColor is RGB with max alpha
         Map<Color, Item> map = new HashMap<>(DyeColor.VALUES.size());
         DyeColor.VALUES.forEach(dyeColor -> {
-            Color color = new Color(dyeColor.getTextColor());
+            Color color = new Color(dyeColor.getTextureDiffuseColor());
             map.put(color, Items.DYE.pick(dyeColor));
         });
         COLOR_TO_DYE_MAP = Map.copyOf(map);
@@ -48,6 +51,31 @@ public class PaintBrushItem extends Item {
     public PaintBrushItem(Properties properties) {
         super(properties);
     }
+
+    @Override
+    public Component getName(ItemStack itemStack) {
+        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
+        return Component.translatable(
+                        properties.emissive() ? "item.paint_literally_anywhere.paint_brush.emissive" : "item.paint_literally_anywhere.paint_brush")
+                .withColor(properties.argb() == PaintBrushProperties.EMPTY_COLOR ? Color.WHITE.getRGB() : properties.argb());
+    }
+
+    @Override
+    public boolean canDestroyBlock(ItemStack itemStack, BlockState state, Level level, BlockPos pos, LivingEntity user) {
+        return false;
+    }
+
+    @Override
+    public InteractionResult useOn(UseOnContext context) {
+        return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        return InteractionResult.CONSUME;
+    }
+
+
 
     public record PaintResult(int[] pixelsPainted, @Nullable String error) {}
 
@@ -153,6 +181,8 @@ public class PaintBrushItem extends Item {
         }
     }
 
+
+
     private static Pair<ItemStack, ItemStack> getRequiredDyes(Color requestedColor) {
         // sort from closest to furthest from requestedColor
         List<Color> sortedDyeColors = COLOR_TO_DYE_MAP.keySet().stream()
@@ -174,26 +204,28 @@ public class PaintBrushItem extends Item {
         return Math.sqrt((((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8));
     }
 
-    @Override
-    public Component getName(ItemStack itemStack) {
-        PaintBrushProperties properties = itemStack.getOrDefault(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT);
-        return Component.translatable(
-                properties.emissive() ? "item.paint_literally_anywhere.paint_brush.emissive" : "item.paint_literally_anywhere.paint_brush")
-                .withColor(properties.argb() == PaintBrushProperties.EMPTY_COLOR ? Color.WHITE.getRGB() : properties.argb());
-    }
+    private static double xyz_approxDistanceBetweenRGBValues(Color color1, Color color2) {
+        Function<Color, Vec3> rgbToXyz = color -> {
+            Int2DoubleFunction convert = c -> {
+                double result = c;
+                result = result / 255;
+                result = result > 0.04045 ? Math.pow(((result + 0.055) / 1.055), 2.4) : result / 12.92;
+                result = result * 100;
+                return result;
+            };
 
-    @Override
-    public boolean canDestroyBlock(ItemStack itemStack, BlockState state, Level level, BlockPos pos, LivingEntity user) {
-        return false;
-    }
+            double red = convert.applyAsDouble(color.getRed());
+            double green = convert.applyAsDouble(color.getGreen());
+            double blue = convert.applyAsDouble(color.getBlue());
+            double x = (red * 0.4124564) + (green * 0.3575761) + (blue * 0.1804375);
+            double y = (red * 0.2126729) + (green * 0.7151522) + (blue * 0.0721750);
+            double z = (red * 0.0193339) + (green * 0.1191920) + (blue * 0.9503041);
+            return new Vec3(x, y, z);
+        };
 
-    @Override
-    public InteractionResult useOn(UseOnContext context) {
-        return InteractionResult.CONSUME;
-    }
+        Vec3 color1XYZ = rgbToXyz.apply(color1);
+        Vec3 color2XYZ = rgbToXyz.apply(color2);
 
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        return InteractionResult.CONSUME;
+        return Math.sqrt(Math.pow(color1XYZ.x - color2XYZ.x, 2) + Math.pow(color1XYZ.y - color2XYZ.y, 2) + Math.pow(color1XYZ.z - color2XYZ.z, 2));
     }
 }
