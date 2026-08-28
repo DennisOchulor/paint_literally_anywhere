@@ -10,6 +10,7 @@ Client Item
 ---
 
 **ToDo (features):**
+- Setup default minecraft.dat file
 - Consider clicking images directly to select tool
 - Figure out dye algorithm
 - Somehow transfer pixels when block state changes in certain ways

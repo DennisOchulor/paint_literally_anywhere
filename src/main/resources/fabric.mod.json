@@ -8,7 +8,8 @@
 		"Ninjaking312"
 	],
 	"contact": {
-		"sources": "https://github.com/DennisOchulor/paint_literally_anywhere"
+		"sources": "https://github.com/DennisOchulor/paint_literally_anywhere",
+		"homepage": "https://modrinth.com/mod/paint-literally-anywhere"
 	},
 	"license": "MIT",
 	"icon": "assets/paint_literally_anywhere/icon.png",
