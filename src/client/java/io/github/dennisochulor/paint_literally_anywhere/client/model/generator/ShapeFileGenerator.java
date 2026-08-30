@@ -71,14 +71,17 @@ public final class ShapeFileGenerator {
         writeShapeFiles(shapeFiles.values(), minecraft.gameDirectory.toPath().resolve(ShapeFileParser.RELATIVE_PATH_TO_SHAPES_DIR));
 
         ShapeFileParseResult newResult = ShapeFileParseResult.merge(currentResult, shapeFiles);
+        Set<String> remainderNamespaces = newResult.missingNamespaces(true).keySet();
 
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            Set<String> remainderNamespaces = newResult.missingNamespaces(true).keySet();
+        if (!remainderNamespaces.isEmpty()) {
+            StringBuilder sb = new StringBuilder("Still got namespaces with ungenerated shape files!\n");
+            remainderNamespaces.forEach(namespace -> sb.append(namespace).append(", "));
 
-            if (!remainderNamespaces.isEmpty()) {
-                StringBuilder sb = new StringBuilder("Still got namespaces with ungenerated shape files!\n");
-                remainderNamespaces.forEach(namespace -> sb.append(namespace).append(", "));
+            if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
                 throw new IllegalStateException(sb.toString());
+            }
+            else {
+                PLAMod.LOGGER.warn(sb.toString());
             }
         }
 
