@@ -58,7 +58,13 @@ public class ShapeFileParseResult {
         Set<String> allNamespacesWithBlocks = BuiltInRegistries.BLOCK.keySet().stream().map(Identifier::getNamespace).collect(Collectors.toUnmodifiableSet());
 
         allNamespacesWithBlocks.forEach(namespace -> {
-            ModContainer modContainer = FabricLoader.getInstance().getModContainer(namespace).orElseThrow();
+            Optional<ModContainer> optionalModContainer = FabricLoader.getInstance().getModContainer(namespace);
+            if (optionalModContainer.isEmpty()) {
+                // some mods have differing namespaces and modids, sigh...
+                return;
+            }
+
+            ModContainer modContainer = optionalModContainer.orElseThrow();
             String version = modContainer.getMetadata().getVersion().getFriendlyString();
             ShapeFile shapeFile = shapeFiles.get(namespace);
 

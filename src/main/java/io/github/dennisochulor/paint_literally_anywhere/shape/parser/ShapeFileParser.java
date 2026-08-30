@@ -22,6 +22,10 @@ public final class ShapeFileParser {
 
     public static ShapeFileParseResult parse(Path rootDirectory) {
         Path shapesFolder = rootDirectory.resolve(RELATIVE_PATH_TO_SHAPES_DIR);
+        if (Files.notExists(shapesFolder)) {
+            return ShapeFileParseResult.EMPTY;
+        }
+
         List<Path> shapeFiles;
         try (Stream<Path> stream = Files.list(shapesFolder)) {
             shapeFiles = stream.toList();
