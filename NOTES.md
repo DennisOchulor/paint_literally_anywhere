@@ -10,12 +10,14 @@ Client Item
 ---
 
 **ToDo (features):**
-- Setup default minecraft.dat file
-- Consider clicking images directly to select tool
 - Figure out dye algorithm
-- Somehow transfer pixels when block state changes in certain ways
+- Maybe setup default minecraft.dat file
+- Consider clicking images directly to select tool
+- Transfer pixels when block state changes in certain ways
   - e.g. flipping trapdoors
-
+  - May not be possible without hardcoding to certain block state properties
+- Silk touch to retain paint
+  - Also may not be possible without hardcoding to certain block state properties
 ---
 
 **ToDo (bugs):**
