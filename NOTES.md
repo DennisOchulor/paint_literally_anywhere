@@ -10,9 +10,14 @@ Client Item
 ---
 
 **ToDo (features):**
+
+Likely:
 - Figure out dye algorithm
-- Maybe setup default minecraft.dat file
 - Consider clicking images directly to select tool
+
+---
+
+Unlikely:
 - Transfer pixels when block state changes in certain ways
   - e.g. flipping trapdoors
   - May not be possible without hardcoding to certain block state properties
