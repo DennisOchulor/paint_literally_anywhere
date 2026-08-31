@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "paint_literally_anywhere",
-	"version": "${version}",
+	"version": "${version}-${minecraft_version}",
 	"name": "Paint Literally Anywhere",
 	"description": "The world is (literally) your canvas!",
 	"authors": [
@@ -9,6 +9,7 @@
 	],
 	"contact": {
 		"sources": "https://github.com/DennisOchulor/paint_literally_anywhere",
+		"issues": "https://gist.github.com/DennisOchulor/3882fbed8efcffcc61b60db49a2ecc4c",
 		"homepage": "https://modrinth.com/mod/paint-literally-anywhere"
 	},
 	"license": "MIT",
