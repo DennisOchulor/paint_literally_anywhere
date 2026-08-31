@@ -45,9 +45,16 @@ public class PLAMod implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             ShapeFileParseResult result;
+
             if (server.isDedicatedServer()) {
                 result = ShapeFileParser.parse(server.getServerDirectory());
                 ShapeUtil.setParseResult(result);
+
+                StringBuilder sb = new StringBuilder();
+                result.missingNamespaces(true).keySet().forEach(namespace -> sb.append(namespace).append(", "));
+                if (!sb.isEmpty()) {
+                    LOGGER.warn("[PLA] Dedicated server is missing accurate shapes for the namespaces: {}", sb);
+                }
             }
             else { // we have a client, so parsing/generating was already done during model baking
                 result = ShapeUtil.getParseResult();
