@@ -53,7 +53,8 @@ public class PLAMod implements ModInitializer {
                 StringBuilder sb = new StringBuilder();
                 result.missingNamespaces(true).keySet().forEach(namespace -> sb.append(namespace).append(", "));
                 if (!sb.isEmpty()) {
-                    LOGGER.warn("[PLA] Dedicated server is missing accurate shapes for the namespaces: {}", sb);
+                    LOGGER.warn("[PLA] Dedicated server is missing accurate shapes for the namespaces (either due to missing or outdated shape files): {}\n" +
+                            "See https://modrinth.com/project/paint-literally-anywhere#:~:text=Important%20note%20for%20Dedicated%20Servers for more info.", sb);
                 }
             }
             else { // we have a client, so parsing/generating was already done during model baking
