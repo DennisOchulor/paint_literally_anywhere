@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "paint_literally_anywhere",
-	"version": "${version}-${minecraft_version}",
+	"version": "${version}",
 	"name": "Paint Literally Anywhere",
 	"description": "The world is (literally) your canvas!",
 	"authors": [
