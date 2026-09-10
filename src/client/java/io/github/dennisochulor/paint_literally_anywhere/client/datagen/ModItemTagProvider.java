@@ -15,6 +15,6 @@ public class ModItemTagProvider extends FabricTagsProvider.ItemTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider registries) {
-        this.tag(ItemTags.DURABILITY_ENCHANTABLE).add(ModItemIds.PAINT_BRUSH);
+        this.builder(ItemTags.DURABILITY_ENCHANTABLE).add(ModItemIds.PAINT_BRUSH);
     }
 }

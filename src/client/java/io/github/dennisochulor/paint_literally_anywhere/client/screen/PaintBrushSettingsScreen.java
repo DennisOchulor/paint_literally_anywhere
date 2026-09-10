@@ -201,7 +201,7 @@ public class PaintBrushSettingsScreen extends Screen {
             emissiveCheckbox.onPress(DUMMY_INPUT); // toggles it
         }
 
-        Minecraft.getInstance().gui.setScreen(this);
+        Minecraft.getInstance().setScreen(this);
     }
 
 

@@ -10,6 +10,7 @@ import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadAtlas;
 import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
@@ -17,7 +18,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
 import net.minecraft.world.level.Level;
@@ -99,7 +99,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
         int resolution = instance.resolution();
         float step = 1.0F / resolution;
 
-        int lightCoords = LightCoordsUtil.getLightCoords(level, pos.relative(direction));
+        int lightCoords = LevelRenderer.getLightCoords(level, pos.relative(direction));
 
         Vector3f refVertex = new Vector3f();
         Vector3f refScalerVec = new Vector3f();

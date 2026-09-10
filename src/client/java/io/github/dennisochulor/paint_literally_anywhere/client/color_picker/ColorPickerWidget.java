@@ -2,6 +2,7 @@ package io.github.dennisochulor.paint_literally_anywhere.client.color_picker;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractContainerWidget;
+import net.minecraft.client.gui.components.AbstractScrollArea;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.layouts.FrameLayout;
 import net.minecraft.client.gui.layouts.LinearLayout;
@@ -32,7 +33,7 @@ public class ColorPickerWidget extends AbstractContainerWidget {
     }
 
     public ColorPickerWidget(int x, int y, int width, int height, Color color, ColorChangeListener listener) {
-        super(x, y, width, height, Component.literal("Color picker"));
+        super(x, y, width, height, Component.literal("Color picker"), AbstractScrollArea.defaultSettings(9));
         this.listener = listener;
         this.color = color;
         float[] hsl = new float[3];

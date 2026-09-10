@@ -1,7 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere;
 
 import io.github.dennisochulor.paint_literally_anywhere.block.ModBlockEntities;
-import io.github.dennisochulor.paint_literally_anywhere.block.ModBlocks;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModItems;
 import io.github.dennisochulor.paint_literally_anywhere.network.ModNetworking;
@@ -32,7 +31,6 @@ public class PLAMod implements ModInitializer {
         ModNetworking.init();
         ModComponents.init();
         ModItems.init();
-        ModBlocks.init();
         ModBlockEntities.init();
         ModAttachmentTypes.init();
 

@@ -58,7 +58,7 @@ public class QuadsDebugRenderer implements DebugRenderer.SimpleDebugRenderer {
                 i = (i + 1) % RAINBOW.length;
             }
 
-            minecraft.gameRenderer.gameRenderState().levelRenderState.blockOutlineRenderState = null;
+            minecraft.gameRenderer.getGameRenderState().levelRenderState.blockOutlineRenderState = null;
         }
     }
 }
