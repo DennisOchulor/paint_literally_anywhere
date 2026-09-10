@@ -17,7 +17,7 @@ public final class ModItems {
             ModItemIds.PAINT_BRUSH,
             PaintBrushItem::new,
             new Item.Properties()
-                    .durability(512)
+                    .durability(1024)
                     .component(ModComponents.PAINT_BRUSH, PaintBrushProperties.DEFAULT)
                     .repairable(Items.FEATHER)
     );
