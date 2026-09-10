@@ -10,6 +10,7 @@ import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
 import io.github.dennisochulor.paint_literally_anywhere.network.ServerboundPaintbrushUpdatePacket;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.*;
@@ -80,7 +81,7 @@ public class PaintBrushSettingsScreen extends Screen {
         emissiveCheckbox.setTooltip(Tooltip.create(Component.literal("Whether the paint should glow in the dark")));
 
         eyedropperButton = SpriteIconButton.builder(
-                Component.literal("Pick color from a block"),
+                Component.literal("Pick colour from a painted block"),
                 _ -> {
                     PaintBrushClientInteractions.useEyedropper(this, paintBrush);
                     this.onClose();
@@ -162,7 +163,13 @@ public class PaintBrushSettingsScreen extends Screen {
 
         int x = eyedropperButton.getX();
         int y = eyedropperButton.getY();
-        graphics.text(font, "Required Items:", x, y + 40, Color.WHITE.getRGB());
+
+        Component requiredItemsText = Component.literal("Required Items:").withStyle(ChatFormatting.UNDERLINE);
+        graphics.text(font, requiredItemsText, x, y + 40, Color.WHITE.getRGB());
+
+        if (isHovering(x, y + 40, font.width(requiredItemsText), font.lineHeight, mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(Component.literal("If previous colour used the same dye, you get it for free!"), mouseX, mouseY);
+        }
 
         for (int i = 0; i < requiredItems.length; i++) {
             ItemStack itemStack = requiredItems[i];

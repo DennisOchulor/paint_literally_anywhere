@@ -186,17 +186,25 @@ public class PaintBrushItem extends Item {
     private static Pair<ItemStack, ItemStack> getRequiredDyes(Color requestedColor) {
         // sort from closest to furthest from requestedColor
         List<Color> sortedDyeColors = COLOR_TO_DYE_MAP.keySet().stream()
-                .sorted(Comparator.comparingDouble(color -> ciede2000_approxDistanceBetweenRGBValues(color, requestedColor))).toList();
+                .sorted(Comparator.comparingDouble(color -> approxDistanceBetweenRGBValues(color, requestedColor))).toList();
         Color firstDyeColor = sortedDyeColors.getFirst();
         Color secondDyeColor = sortedDyeColors.get(1);
 
         ItemStack first = new ItemStack(COLOR_TO_DYE_MAP.get(firstDyeColor));
-        boolean needsSecondDye = ciede2000_approxDistanceBetweenRGBValues(firstDyeColor, requestedColor) > 15;
+        boolean needsSecondDye = approxDistanceBetweenRGBValues(firstDyeColor, requestedColor) > 135;
         return Pair.of(first, needsSecondDye ? new ItemStack(COLOR_TO_DYE_MAP.get(secondDyeColor)) : ItemStack.EMPTY);
     }
 
-    // https://stackoverflow.com/a/9085524
     private static double approxDistanceBetweenRGBValues(Color color1, Color color2) {
+        return rmean_approxDistanceBetweenRGBValues(color1, color2);
+    }
+
+
+
+    // COLOR DIFF ALGORITHMS
+
+    // https://stackoverflow.com/a/9085524
+    private static double rmean_approxDistanceBetweenRGBValues(Color color1, Color color2) {
         long rmean = ( (long) color1.getRed() + (long) color2.getRed() ) / 2;
         long r = (long) color1.getRed() - (long) color2.getRed();
         long g = (long) color1.getGreen() - (long) color2.getGreen();

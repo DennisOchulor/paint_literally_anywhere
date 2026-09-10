@@ -134,16 +134,22 @@ public final class PaintBrushClientInteractions {
 
             if (template != null) {
                 QuadInstance instance = ChunkCanvasData.getQuadInstance(player.level().getChunkAt(pos), pos, template);
+                int argb;
+                boolean emissive;
 
                 if (instance != null) {
                     QuadInstance.RowCol rowCol = instance.getRowCol(QuadTemplate.localize(blockHitResult.getLocation(), pos, template.direction()));
                     int index = instance.index(rowCol);
-                    int argb = instance.pixels()[index];
-                    boolean emissive = instance.emissiveData().get(index);
-
-                    eyedropperState.screen().setColorFromEyedropper(argb, emissive);
-                    eyedropperState = null;
+                    argb = instance.pixels()[index];
+                    emissive = instance.emissiveData().get(index);
                 }
+                else {
+                    argb = PaintBrushProperties.EMPTY_COLOR;
+                    emissive = false;
+                }
+
+                eyedropperState.screen().setColorFromEyedropper(argb, emissive);
+                eyedropperState = null;
             }
         }
 
