@@ -83,7 +83,10 @@ public final class ShapeFileParser {
                             map.put(record.namespace(), record);
                         })
                         .ifError(err -> {
-                            PLAMod.LOGGER.warn("Encountered errors while parsing shape file {}\n{}", path.getFileName(), err.message());
+                            PLAMod.LOGGER.warn("Encountered errors while parsing shape file {}\n{}",
+                                    path.getFileName(),
+                                    FabricLoader.getInstance().isDevelopmentEnvironment() ? err.message() : ""
+                            );
                             err.resultOrPartial().ifPresent(pair -> {
                                 ShapeFile record = pair.getFirst();
                                 map.put(record.namespace(), record);
