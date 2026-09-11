@@ -69,10 +69,6 @@ public final class ShapeFileParser {
             return ShapeFileParseResult.EMPTY;
         }
 
-        StringBuilder sb = new StringBuilder();
-        shapeFiles.forEach(path -> sb.append(path.getFileName().toString()).append(", "));
-        PLAMod.LOGGER.debug("About to parse {}", sb);
-
         long startTime = Util.getMillis();
         Map<String, ShapeFile> map = new HashMap<>();
         for (Path path : shapeFiles) {
@@ -98,8 +94,9 @@ public final class ShapeFileParser {
             }
         }
 
-        PLAMod.LOGGER.info("Took {} ms to parse {} shape files for the namespaces: {}",
-                Util.getMillis() - startTime, shapeFiles.size(), map.keySet().stream().reduce((s1, s2) -> s1 + ", " + s2).orElse("<none>"));
+        StringBuilder sb = new StringBuilder();
+        shapeFiles.forEach(path -> sb.append(path.getFileName().toString()).append(", "));
+        PLAMod.LOGGER.info("Took {} ms to parse {} shape files: {}", Util.getMillis() - startTime, shapeFiles.size(), sb);
         return new ShapeFileParseResult(map);
     }
 }

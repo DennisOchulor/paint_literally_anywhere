@@ -69,7 +69,7 @@ public final class ShapeFileGenerator {
         Map<String, ShapeFile> shapeFiles = builders.entrySet().stream()
                 .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, e -> e.getValue().build()));
 
-        writeShapeFiles(shapeFiles.values(), minecraft.gameDirectory.toPath().resolve(ShapeFileParser.RELATIVE_PATH_TO_SHAPES_DIR));
+        List<String> writtenFiles = writeShapeFiles(shapeFiles.values(), minecraft.gameDirectory.toPath().resolve(ShapeFileParser.RELATIVE_PATH_TO_SHAPES_DIR));
 
         ShapeFileParseResult newResult = ShapeFileParseResult.merge(currentResult, shapeFiles);
         Set<String> remainderNamespaces = newResult.missingNamespaces(true).keySet();
@@ -86,12 +86,11 @@ public final class ShapeFileGenerator {
             }
         }
 
-        PLAMod.LOGGER.info("Took {} ms to generate {} shape files for the namespaces: {}",
-                Util.getMillis() - startTime, shapeFiles.size(), shapeFiles.keySet().stream().reduce((s1, s2) -> s1 + ", " + s2).orElse("<none>"));
+        PLAMod.LOGGER.info("Took {} ms to generate {} shape files: {}", Util.getMillis() - startTime, writtenFiles.size(), writtenFiles);
         return newResult;
     }
 
-    private static void writeShapeFiles(Collection<ShapeFile> shapeFiles, Path shapesFolder) {
+    private static List<String> writeShapeFiles(Collection<ShapeFile> shapeFiles, Path shapesFolder) {
         try {
             Files.createDirectories(shapesFolder);
         }
@@ -99,6 +98,7 @@ public final class ShapeFileGenerator {
             throw new UncheckedIOException(e);
         }
 
+        List<String> writtenFiles = new ArrayList<>();
         for (ShapeFile shapeFile : shapeFiles) {
             ShapeFile.CODEC.encode(shapeFile, NbtOps.INSTANCE, NbtOps.INSTANCE.empty())
                     .ifSuccess(tag -> {
@@ -107,6 +107,7 @@ public final class ShapeFileGenerator {
                             // In practice most namespaceVersions will be compliant, so this is probably fine shrug
                             String filename = shapeFile.namespace() + ShapeFileParser.FILENAME_SEPARATOR + sanitizeName(shapeFile.namespaceVersion()) + ".dat";
                             NbtIo.writeCompressed(tag.asCompound().orElseThrow(), shapesFolder.resolve(filename));
+                            writtenFiles.add(filename);
                         }
                         catch (IOException e) {
                             PLAMod.LOGGER.warn("Failed to write shape file for {}!", shapeFile.namespace(), e);
@@ -114,6 +115,8 @@ public final class ShapeFileGenerator {
                     })
                     .ifError(err -> PLAMod.LOGGER.warn("Failed to encode shape file {}!\n{}", shapeFile.namespace(), err.message()));
         }
+
+        return writtenFiles;
     }
 
     // Copied from FileUtil
