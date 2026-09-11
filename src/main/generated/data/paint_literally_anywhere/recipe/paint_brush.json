@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "group": "paint_brush",
+  "key": {
+    "F": "minecraft:feather",
+    "S": "minecraft:stick"
+  },
+  "pattern": [
+    "FFF",
+    " S ",
+    " S "
+  ],
+  "result": {
+    "id": "paint_literally_anywhere:paint_brush"
+  }
+}
