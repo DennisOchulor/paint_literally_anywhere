@@ -19,7 +19,7 @@ import java.util.List;
 
 @Mixin(FallingBlockEntity.class)
 public class FallingBlockEntityMixin {
-    @Inject(method = "fall", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
+    @Inject(method = "fall", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
     private static void fall(Level level, BlockPos pos, BlockState state, CallbackInfoReturnable<FallingBlockEntity> cir,
                              @Local(name = "entity") FallingBlockEntity entity) {
         ChunkCanvasData data = level.getChunkAt(pos).getAttached(ModAttachmentTypes.CHUNK_CANVAS_DATA);
@@ -29,7 +29,7 @@ public class FallingBlockEntityMixin {
         }
     }
 
-    @Inject(method = "tick", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
+    @Inject(method = "tick", at = @At(value = "INVOKE", shift = At.Shift.AFTER, target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
     private void tick(CallbackInfo ci, @Local(name = "pos") BlockPos pos) {
         FallingBlockEntity entity = (FallingBlockEntity) (Object) this;
 

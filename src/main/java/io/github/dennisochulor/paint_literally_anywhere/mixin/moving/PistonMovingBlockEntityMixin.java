@@ -17,9 +17,9 @@ import java.util.List;
 
 @Mixin(PistonMovingBlockEntity.class)
 abstract class PistonMovingBlockEntityMixin {
-    @WrapOperation(method = "finalTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"))
-    private boolean finalTick(Level level, BlockPos pos, BlockState blockState, int updateFlags, Operation<Boolean> original) {
-        boolean result = original.call(level, pos, blockState, updateFlags);
+    @WrapOperation(method = "finalTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlockAndUpdate(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;)Z"))
+    private boolean finalTick(Level level, BlockPos pos, BlockState state, Operation<Boolean> original) {
+        boolean result = original.call(level, pos, state);
 
         if (level.isClientSide()) return result;
 

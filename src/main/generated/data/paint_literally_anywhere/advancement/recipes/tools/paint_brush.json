@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "paint_literally_anywhere:paint_brush"
+        "recipes": "paint_literally_anywhere:paint_brush"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
