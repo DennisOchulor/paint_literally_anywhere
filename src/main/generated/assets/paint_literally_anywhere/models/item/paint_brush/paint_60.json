@@ -1,0 +1,6 @@
+{
+  "parent": "paint_literally_anywhere:item/paint_brush_template",
+  "textures": {
+    "layer0": "paint_literally_anywhere:item/paint_brush/paint_60"
+  }
+}
