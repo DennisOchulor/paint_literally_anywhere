@@ -8,6 +8,7 @@ import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFilePa
 import io.github.dennisochulor.paint_literally_anywhere.shape.parser.ShapeFileParser;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -39,8 +40,8 @@ public final class ShapeFileGenerator {
 
         long startTime = Util.getMillis();
         Map<String, ShapeFile.Builder> builders = HashMap.newHashMap(namespacesToGenerate.size());
-        namespacesToGenerate.values().forEach(modMetadata -> {
-            builders.put(modMetadata.getId(), new ShapeFile.Builder(modMetadata.getId(), modMetadata.getVersion().getFriendlyString()));
+        namespacesToGenerate.forEach((namespace, metadata) -> {
+            builders.put(namespace, new ShapeFile.Builder(namespace, metadata.getVersion().getFriendlyString()));
         });
 
         FakeQuadEmitter quadEmitter = new FakeQuadEmitter();
@@ -102,7 +103,10 @@ public final class ShapeFileGenerator {
             ShapeFile.CODEC.encode(shapeFile, NbtOps.INSTANCE, NbtOps.INSTANCE.empty())
                     .ifSuccess(tag -> {
                         try {
-                            NbtIo.writeCompressed(tag.asCompound().orElseThrow(), shapesFolder.resolve(shapeFile.namespace() + ".dat"));
+                            // sanitizing the namespaceVersion does mean it may not match up during parsing
+                            // In practice most namespaceVersions will be compliant, so this is probably fine shrug
+                            String filename = shapeFile.namespace() + ShapeFileParser.FILENAME_SEPARATOR + sanitizeName(shapeFile.namespaceVersion()) + ".dat";
+                            NbtIo.writeCompressed(tag.asCompound().orElseThrow(), shapesFolder.resolve(filename));
                         }
                         catch (IOException e) {
                             PLAMod.LOGGER.warn("Failed to write shape file for {}!", shapeFile.namespace(), e);
@@ -110,5 +114,15 @@ public final class ShapeFileGenerator {
                     })
                     .ifError(err -> PLAMod.LOGGER.warn("Failed to encode shape file {}!\n{}", shapeFile.namespace(), err.message()));
         }
+    }
+
+    // Copied from FileUtil
+    private static String sanitizeName(String baseName) {
+        for(char replacer : SharedConstants.ILLEGAL_FILE_CHARACTERS) {
+            baseName = baseName.replace(replacer, '_');
+        }
+
+        // removed the . from regex
+        return baseName.replaceAll("[/\"]", "_");
     }
 }
