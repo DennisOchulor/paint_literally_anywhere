@@ -191,6 +191,11 @@ public class PaintBrushSettingsScreen extends Screen {
         }
     }
 
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
     public void setColorFromEyedropper(int argb, boolean emissive) {
         colorPickerWidget.setSelectedColor(new Color(argb, true));
 
