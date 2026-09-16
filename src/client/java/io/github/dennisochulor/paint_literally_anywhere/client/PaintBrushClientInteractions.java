@@ -138,7 +138,7 @@ public final class PaintBrushClientInteractions {
                 boolean emissive;
 
                 if (instance != null) {
-                    QuadInstance.RowCol rowCol = instance.getRowCol(QuadTemplate.localize(blockHitResult.getLocation(), pos, template.direction()));
+                    QuadInstance.RowCol rowCol = instance.getRowCol(QuadTemplate.localize(blockHitResult.getLocation(), pos));
                     int index = instance.index(rowCol);
                     argb = instance.pixels()[index];
                     emissive = instance.emissiveData().get(index);

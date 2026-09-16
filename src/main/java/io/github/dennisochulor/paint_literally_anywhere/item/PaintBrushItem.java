@@ -97,7 +97,7 @@ public class PaintBrushItem extends Item {
             return; // simply ignore nonsense packet
         }
 
-        Vector3fc localHitPos = QuadTemplate.localize(packet.hitPos(), pos, packet.template().direction());
+        Vector3fc localHitPos = QuadTemplate.localize(packet.hitPos(), pos);
         int remainingDurability = itemStack.getMaxDamage() - itemStack.getDamageValue();
         PaintResult result = ChunkCanvasData.paintServer(level.getChunkAt(pos), packet.template(), pos, localHitPos, properties, remainingDurability, !player.isCreative());
 
