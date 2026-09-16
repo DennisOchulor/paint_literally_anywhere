@@ -107,15 +107,10 @@ public record QuadTemplate(
 
     // pos is needed as some blocks extend outside the normal block range
     // so vec could be referring to a neighbor pos
-    public static Vector3fc localize(Vec3 vec, BlockPos pos, Direction hitDirection) {
-        float x = (float) Math.abs((Math.abs(vec.x()) - Math.abs(pos.getX())));
-        float y = (float) Math.abs((Math.abs(vec.y()) - Math.abs(pos.getY())));
-        float z = (float) Math.abs((Math.abs(vec.z()) - Math.abs(pos.getZ())));
-
-        // Account for both most +ve and -ve of each axis being 0
-        if (x == 0 && hitDirection == Direction.EAST) x = 1;
-        if (y == 0 && hitDirection == Direction.UP) y = 1;
-        if (z == 0 && hitDirection == Direction.SOUTH) z = 1;
+    public static Vector3fc localize(Vec3 vec, BlockPos pos) {
+        float x = (float) vec.x() - pos.getX();
+        float y = (float) vec.y() - pos.getY();
+        float z = (float) vec.z() - pos.getZ();
 
         return new Vector3f(x, y, z);
     }
