@@ -2,6 +2,7 @@ package io.github.dennisochulor.paint_literally_anywhere.shape.parser;
 
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtOps;
@@ -11,7 +12,9 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -29,42 +32,7 @@ public final class ShapeFileParser {
             return ShapeFileParseResult.EMPTY;
         }
 
-        List<Path> shapeFiles;
-        try (Stream<Path> stream = Files.list(shapesFolder)) {
-            Map<String, Path> namespacesSeen = new HashMap<>();
-
-            stream.forEach(path -> {
-                String filename = path.getFileName().toString();
-                Matcher matcher = FILENAME_PATTERN.matcher(filename);
-
-                if (matcher.matches()) {
-                    String namespace = matcher.group(1);
-                    String version = matcher.group(2);
-
-                    FabricLoader.getInstance().getModContainer(namespace).ifPresentOrElse(modContainer -> {
-                        // If there is never any exact match for a namespace, then it will just use the first one.
-                        boolean isExactMatch = version.equals(modContainer.getMetadata().getVersion().getFriendlyString());
-
-                        if (!namespacesSeen.containsKey(namespace) || isExactMatch) {
-                            namespacesSeen.put(namespace, path);
-                        }
-                    },
-
-                    () -> {
-                        PLAMod.LOGGER.warn("Cannot find matching ModContainer for namespace {}", namespace);
-                    });
-                }
-                else {
-                    PLAMod.LOGGER.warn("Ignoring unknown shape file: {}", filename);
-                }
-            });
-
-            shapeFiles = namespacesSeen.values().stream().toList();
-        }
-        catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
+        List<Path> shapeFiles = getFilesToParse(shapesFolder);
         if (shapeFiles.isEmpty()) {
             return ShapeFileParseResult.EMPTY;
         }
@@ -73,7 +41,7 @@ public final class ShapeFileParser {
         Map<String, ShapeFile> map = new HashMap<>();
         for (Path path : shapeFiles) {
             try {
-                ShapeFile.CODEC.decode(NbtOps.INSTANCE, NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap()))
+                ShapeFile.CODEC.decode(NbtOps.INSTANCE, dataFix(NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap())))
                         .ifSuccess(pair -> {
                             ShapeFile record = pair.getFirst();
                             map.put(record.namespace(), record);
@@ -98,5 +66,48 @@ public final class ShapeFileParser {
         shapeFiles.forEach(path -> sb.append(path.getFileName().toString()).append(", "));
         PLAMod.LOGGER.info("Took {} ms to parse {} shape files: {}", Util.getMillis() - startTime, shapeFiles.size(), sb);
         return new ShapeFileParseResult(map);
+    }
+
+    private static List<Path> getFilesToParse(Path shapesFolder) {
+        try (Stream<Path> stream = Files.list(shapesFolder)) {
+            Map<String, Path> namespacesSeen = new HashMap<>();
+
+            stream.forEach(path -> {
+                String filename = path.getFileName().toString();
+                Matcher matcher = FILENAME_PATTERN.matcher(filename);
+
+                if (matcher.matches()) {
+                    String namespace = matcher.group(1);
+                    String version = matcher.group(2);
+
+                    FabricLoader.getInstance().getModContainer(namespace).ifPresentOrElse(modContainer -> {
+                                // If there is never any exact match for a namespace, then it will just use the first one.
+                                boolean isExactMatch = version.equals(modContainer.getMetadata().getVersion().getFriendlyString());
+
+                                if (!namespacesSeen.containsKey(namespace) || isExactMatch) {
+                                    namespacesSeen.put(namespace, path);
+                                }
+                            },
+
+                            () -> {
+                                PLAMod.LOGGER.warn("Cannot find matching ModContainer for namespace {}", namespace);
+                            });
+                }
+                else {
+                    PLAMod.LOGGER.warn("Ignoring unknown shape file: {}", filename);
+                }
+            });
+
+            return namespacesSeen.values().stream().toList();
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private static CompoundTag dataFix(CompoundTag tag) {
+        //noinspection unused
+        int dataVersion = tag.getIntOr("mcDataVersion", ShapeFile.DEFAULT_MC_DATA_VERSION);
+        return tag;
     }
 }

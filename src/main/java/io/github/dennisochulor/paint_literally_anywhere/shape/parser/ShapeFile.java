@@ -7,6 +7,7 @@ import io.github.dennisochulor.paint_literally_anywhere.ParallelListMapCodec;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import net.minecraft.SharedConstants;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
@@ -16,15 +17,18 @@ import java.util.Map;
 
 public record ShapeFile(
         int schemaVersion,
+        int mcDataVersion,
         String namespace,
         String namespaceVersion,
         List<QuadTemplate> templates,
         Map<BlockState, int[]> blockStates
 ) {
     public static final int LATEST_SCHEMA_VERSION = 1;
+    public static final int DEFAULT_MC_DATA_VERSION = 4903; // 26.2 data version by default
     public static final Codec<ShapeFile> CODEC = RecordCodecBuilder.create(
             instance -> instance.group(
                     Codec.INT.fieldOf("schemaVersion").forGetter(ShapeFile::schemaVersion),
+                    Codec.INT.optionalFieldOf("mcDataVersion", DEFAULT_MC_DATA_VERSION).forGetter(ShapeFile::mcDataVersion),
                     Codec.STRING.fieldOf("namespace").forGetter(ShapeFile::namespace),
                     Codec.STRING.fieldOf("namespaceVersion").forGetter(ShapeFile::namespaceVersion),
                     QuadTemplate.CODEC.listOf().fieldOf("templates").forGetter(ShapeFile::templates),
@@ -67,6 +71,7 @@ public record ShapeFile(
         public ShapeFile build() {
             return new ShapeFile(
                     LATEST_SCHEMA_VERSION,
+                    SharedConstants.getCurrentVersion().dataVersion().version(),
                     namespace,
                     namespaceVersion,
                     List.copyOf(templates),
