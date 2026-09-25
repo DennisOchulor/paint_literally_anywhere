@@ -1,5 +1,6 @@
 package io.github.dennisochulor.paint_literally_anywhere;
 
+import com.mojang.datafixers.DSL;
 import io.github.dennisochulor.paint_literally_anywhere.block.ModBlockEntities;
 import io.github.dennisochulor.paint_literally_anywhere.block.ModBlocks;
 import io.github.dennisochulor.paint_literally_anywhere.item.ModComponents;
@@ -14,6 +15,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.item.v1.ItemComponentTooltipProviderRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.datafix.fixes.References;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.MixinEnvironment;
@@ -21,6 +23,7 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 public class PLAMod implements ModInitializer {
     public static final String MOD_ID = "paint_literally_anywhere";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final DSL.TypeReference SHAPE_FILE_REFERENCE = References.reference(id("shape_file").toString());
 
 
     public static Identifier id(String path) {
