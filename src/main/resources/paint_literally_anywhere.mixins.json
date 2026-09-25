@@ -11,6 +11,7 @@
     "BlockStateBaseMixin",
     "LevelChunkMixin",
     "PlayerChunkSenderMixin",
+    "V1460Mixin",
     "moving.FallingBlockEntityMixin",
     "moving.PistonBaseBlockMixin",
     "moving.PistonMovingBlockEntityMixin"

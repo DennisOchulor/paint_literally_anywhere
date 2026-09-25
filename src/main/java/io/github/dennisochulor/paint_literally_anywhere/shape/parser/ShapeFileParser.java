@@ -1,12 +1,15 @@
 package io.github.dennisochulor.paint_literally_anywhere.shape.parser;
 
+import com.mojang.serialization.Dynamic;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.SharedConstants;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.util.Util;
+import net.minecraft.util.datafix.DataFixers;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -106,8 +109,12 @@ public final class ShapeFileParser {
     }
 
     private static CompoundTag dataFix(CompoundTag tag) {
-        //noinspection unused
         int dataVersion = tag.getIntOr("mcDataVersion", ShapeFile.DEFAULT_MC_DATA_VERSION);
-        return tag;
+        return (CompoundTag) DataFixers.getDataFixer().update(
+                PLAMod.SHAPE_FILE_REFERENCE,
+                new Dynamic<>(NbtOps.INSTANCE, tag),
+                dataVersion,
+                SharedConstants.getCurrentVersion().dataVersion().version()
+        ).getValue();
     }
 }
