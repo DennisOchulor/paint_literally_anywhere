@@ -32,7 +32,7 @@ public record ShapeFile(
                     Codec.STRING.fieldOf("namespace").forGetter(ShapeFile::namespace),
                     Codec.STRING.fieldOf("namespaceVersion").forGetter(ShapeFile::namespaceVersion),
                     QuadTemplate.CODEC.listOf().fieldOf("templates").forGetter(ShapeFile::templates),
-                    new ParallelListMapCodec<>(BlockState.CODEC, OddCodecs.INT_ARRAY_CODEC, true).fieldOf("blockStates").forGetter(ShapeFile::blockStates)
+                    new ParallelListMapCodec<>(BlockState.CODEC, OddCodecs.INT_ARRAY_CODEC, HashMap::new, true).fieldOf("blockStates").forGetter(ShapeFile::blockStates)
             ).apply(instance, ShapeFile::new)
     );
 

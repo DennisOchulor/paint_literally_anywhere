@@ -3,6 +3,7 @@ package io.github.dennisochulor.paint_literally_anywhere.client.model;
 import io.github.dennisochulor.paint_literally_anywhere.ChunkCanvasData;
 import io.github.dennisochulor.paint_literally_anywhere.ModAttachmentTypes;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
+import io.github.dennisochulor.paint_literally_anywhere.shape.PixelData;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadInstance;
 import io.github.dennisochulor.paint_literally_anywhere.shape.QuadTemplate;
 import net.fabricmc.fabric.api.client.model.loading.v1.wrapper.WrapperBlockStateModel;
@@ -17,6 +18,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
@@ -89,8 +91,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
     }
 
     private static void render(QuadEmitter emitter, BlockAndTintGetter level, BlockPos pos, QuadInstance instance) {
-        int[] pixels = instance.pixels();
-        BitSet emissiveData = instance.emissiveData();
+        PixelData pixels = instance.pixels();
         QuadTemplate template = instance.template();
         Direction direction = template.direction();
         Vector3fc offset = OFFSETS.get(direction);
@@ -103,6 +104,7 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
 
         Vector3f refVertex = new Vector3f();
         Vector3f refScalerVec = new Vector3f();
+        Vector3f refScalerVec2 = new Vector3f();
         template.rowVector().normalize(step, refVertex);
         template.colVector().normalize(step, refScalerVec);
         Vector3fc rowUnitVec = new Vector3f(refVertex);
@@ -115,15 +117,56 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
         float clipColScale = step - (step * cols - template.colVector().length());
         Vector3fc clippedColUnitVec = new Vector3f(colUnitVec.normalize(clipColScale, refScalerVec));
 
+        BitSet visited = new BitSet(rows * cols);
+
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                int i = instance.index(row, col);
-                int argb = pixels[i];
-                boolean emissive = emissiveData.get(i);
+                int index = instance.index(row, col);
 
-                if (argb == 0) {
+                if (visited.get(index)) {
                     continue;
                 }
+
+                int argb = pixels.getARGB(index);
+                boolean emissive = pixels.isEmissive(index);
+
+                // all vertices with alpha < 0.1 are discarded by vanilla anyway
+                if (ARGB.alphaFloat(argb) < 0.1F) {
+                    visited.set(index);
+                    continue;
+                }
+
+
+                // find adjacent quads that are the same color/emissiveness
+                int extendedRow = row;
+                int extendedCol = col;
+
+                // scan to the right of the row
+                for (int c = col + 1; c < cols; c++) {
+                    int testIndex = instance.index(row, c);
+                    if (visited.get(testIndex) || pixels.getARGB(testIndex) != argb || pixels.isEmissive(testIndex) != emissive) {
+                        break;
+                    }
+                    else {
+                        extendedCol = c;
+                    }
+                }
+                visited.set(index, instance.index(row, extendedCol) + 1); // +1 cause exclusive
+
+                // scan downwards with the whole row
+                outer: for (int r = row + 1; r < rows; r++) {
+                    for (int c = col; c <= extendedCol; c++) {
+                        int testIndex = instance.index(r, c);
+                        if (visited.get(testIndex) || pixels.getARGB(testIndex) != argb || pixels.isEmissive(testIndex) != emissive) {
+                            // if any one pixel in the next row cannot be merged, then abort
+                            break outer;
+                        }
+                    }
+
+                    extendedRow = r; // whole next row can be merged yay!
+                    visited.set(instance.index(r, col), instance.index(r, extendedCol) + 1); // +1 cause exclusive
+                }
+
 
                 emitter.color(argb, argb, argb, argb)
                         .emissive(emissive)
@@ -143,16 +186,38 @@ public class CanvasBlockStateModel extends WrapperBlockStateModel {
                 refVertex.add(rowUnitVec.mul(row, refScalerVec));
                 emitter.pos(0, refVertex);
 
+
+                // calculate col movement
+                Vector3f colMovementVec = refScalerVec;
+                int colDistance = extendedCol - col + 1;
+                if (extendedCol == cols - 1) {
+                    colUnitVec.mul(colDistance - 1, colMovementVec).add(clippedColUnitVec);
+                }
+                else {
+                    colUnitVec.mul(colDistance, colMovementVec);
+                }
+
+                // calculate row movement
+                Vector3f rowMovementVec = refScalerVec2;
+                int rowDistance = extendedRow - row + 1;
+                if (extendedRow == rows - 1) {
+                    rowUnitVec.mul(rowDistance - 1, rowMovementVec).add(clippedRowUnitVec);
+                }
+                else {
+                    rowUnitVec.mul(rowDistance, rowMovementVec);
+                }
+
+
                 // v1 - step col
-                refVertex.add(col == cols - 1 ? clippedColUnitVec : colUnitVec);
+                refVertex.add(colMovementVec);
                 emitter.pos(1, refVertex);
 
                 // v2 - step row/col
-                refVertex.add(row == rows - 1 ? clippedRowUnitVec : rowUnitVec);
+                refVertex.add(rowMovementVec);
                 emitter.pos(2, refVertex);
 
-                // v3 - step row
-                refVertex.sub(col == cols - 1 ? clippedColUnitVec : colUnitVec);
+                // v3 - step row (by going back on col)
+                refVertex.sub(colMovementVec);
                 emitter.pos(3, refVertex);
 
                 emitter.emit();

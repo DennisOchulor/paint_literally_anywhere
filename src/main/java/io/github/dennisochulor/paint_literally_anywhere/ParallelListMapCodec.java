@@ -6,14 +6,15 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.IntFunction;
 
 public record ParallelListMapCodec<K, V>(
         Codec<K> keyCodec,
         Codec<V> valueCodec,
-        boolean immutable
+        IntFunction<Map<K, V>> mapCreator,
+        boolean wrapToImmutable
 ) implements Codec<Map<K, V>> {
     @Override
     public <T> DataResult<Pair<Map<K, V>, T>> decode(DynamicOps<T> ops, T input) {
@@ -50,7 +51,7 @@ public record ParallelListMapCodec<K, V>(
             return DataResult.error(() -> "List sizes differ!");
         }
 
-        Map<K, V> resultMap = HashMap.newHashMap(keys.size());
+        Map<K, V> resultMap = mapCreator.apply(keys.size());
         StringBuilder errorBuilder = new StringBuilder();
         for (int i = 0; i < keys.size(); i++) {
             var keyResult = keyCodec.parse(ops, keys.get(i));
@@ -71,7 +72,7 @@ public record ParallelListMapCodec<K, V>(
             }
         }
 
-        var finalMap = immutable ? Map.copyOf(resultMap) : resultMap;
+        var finalMap = wrapToImmutable ? Map.copyOf(resultMap) : resultMap;
         var finalPair = Pair.of(finalMap, ops.empty());
         return errorBuilder.isEmpty() ? DataResult.success(finalPair) : DataResult.error(errorBuilder::toString, finalPair);
     }

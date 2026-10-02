@@ -140,8 +140,8 @@ public final class PaintBrushClientInteractions {
                 if (instance != null) {
                     QuadInstance.RowCol rowCol = instance.getRowCol(QuadTemplate.localize(blockHitResult.getLocation(), pos));
                     int index = instance.index(rowCol);
-                    argb = instance.pixels()[index];
-                    emissive = instance.emissiveData().get(index);
+                    argb = instance.pixels().getARGB(index);
+                    emissive = instance.pixels().isEmissive(index);
                 }
                 else {
                     argb = PaintBrushProperties.EMPTY_COLOR;
