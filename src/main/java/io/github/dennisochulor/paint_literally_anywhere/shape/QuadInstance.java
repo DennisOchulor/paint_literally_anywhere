@@ -2,7 +2,6 @@ package io.github.dennisochulor.paint_literally_anywhere.shape;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.github.dennisochulor.paint_literally_anywhere.OddCodecs;
 import io.github.dennisochulor.paint_literally_anywhere.PLAMod;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushItem;
 import io.github.dennisochulor.paint_literally_anywhere.item.PaintBrushProperties;
@@ -11,12 +10,10 @@ import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
-import java.util.BitSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.stream.IntStream;
@@ -26,8 +23,7 @@ public record QuadInstance(
         int rows,
         int cols,
         int resolution,
-        int[] pixels,
-        BitSet emissiveData
+        PixelData pixels
 ) {
     public static final Codec<QuadInstance> CODEC = RecordCodecBuilder.create(
         instance ->
@@ -36,8 +32,7 @@ public record QuadInstance(
                         Codec.INT.fieldOf("rows").forGetter(QuadInstance::rows),
                         Codec.INT.fieldOf("cols").forGetter(QuadInstance::cols),
                         Codec.INT.fieldOf("resolution").forGetter(QuadInstance::resolution),
-                        OddCodecs.INT_ARRAY_CODEC.fieldOf("pixels").forGetter(QuadInstance::pixels),
-                        ExtraCodecs.BIT_SET.fieldOf("emissiveData").forGetter(QuadInstance::emissiveData)
+                        PixelData.CODEC.fieldOf("pixels").forGetter(QuadInstance::pixels)
                 ).apply(instance, QuadInstance::new)
     );
 
@@ -46,8 +41,7 @@ public record QuadInstance(
             ByteBufCodecs.INT, QuadInstance::rows,
             ByteBufCodecs.INT, QuadInstance::cols,
             ByteBufCodecs.INT, QuadInstance::resolution,
-            OddCodecs.INT_ARRAY_STREAM_CODEC, QuadInstance::pixels,
-            OddCodecs.BIT_SET_STREAM_CODEC, QuadInstance::emissiveData,
+            PixelData.STREAM_CODEC, QuadInstance::pixels,
             QuadInstance::new
     );
 
@@ -60,9 +54,8 @@ public record QuadInstance(
         float resPixelLength = 1.0F / resolution;
         int rows = (int) Math.ceil(template.rowVector().length() / resPixelLength);
         int cols = (int) Math.ceil(template.colVector().length() / resPixelLength);
-        int numOfPixels = rows * cols;
 
-        this(template, rows, cols, resolution, new int[numOfPixels], new BitSet(numOfPixels));
+        this(template, rows, cols, resolution, new PixelData(rows, cols));
     }
 
     public record RowCol(int row, int col) {}
@@ -102,7 +95,7 @@ public record QuadInstance(
         int col = rowCol.col();
         int index = index(row, col);
 
-        if (index >= pixels.length) {
+        if (index >= pixels.size()) {
             PLAMod.LOGGER.warn("Attempt to paint out-of-bounds index {} at {} for template {}", index, localHitPos, template);
             return EMPTY_RESULT;
         }
@@ -135,12 +128,12 @@ public record QuadInstance(
     }
 
     public boolean directPaint(int index, int argb, boolean emissive) {
-        if (pixels[index] == argb && emissive == emissiveData.get(index)) {
+        if (pixels.getARGB(index) == argb && emissive == pixels.isEmissive(index)) {
             return false;
         }
 
-        pixels[index] = argb;
-        emissiveData.set(index, emissive);
+        pixels.setARGB(index, argb);
+        pixels.setEmissive(index, emissive);
         return true;
     }
 
@@ -148,7 +141,7 @@ public record QuadInstance(
         // https://www.geeksforgeeks.org/dsa/flood-fill-algorithm/
 
         // If the starting pixel already has the new color
-        if (pixels[index] == newColor && emissive == emissiveData.get(index)) {
+        if (pixels.getARGB(index) == newColor && emissive == pixels.isEmissive(index)) {
             return EMPTY_ARRAY;
         }
 
@@ -156,7 +149,7 @@ public record QuadInstance(
         int[][] dir = { {1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 
         Queue<int[]> q = new LinkedList<>();
-        int oldColor = pixels[index];
+        int oldColor = pixels.getARGB(index);
         q.add(new int[]{sr, sc});
 
         // Add the starting pixel
@@ -177,7 +170,7 @@ public record QuadInstance(
 
                 // Check boundary conditions and color match
                 if (nx >= 0 && nx < rows && ny >= 0 && ny < cols &&
-                        pixels[i] == oldColor && !visitedPixels.contains(i))
+                        pixels.getARGB(i) == oldColor && !visitedPixels.contains(i))
                 {
                     q.add(new int[]{nx, ny});
                     visitedPixels.add(i);

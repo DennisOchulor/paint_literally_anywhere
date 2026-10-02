@@ -9,6 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 public final class OddCodecs {
     private OddCodecs() {}
@@ -49,6 +50,28 @@ public final class OddCodecs {
                     arr[i] = input.readInt();
                 }
                 return arr;
+            }
+    );
+
+    public static final Codec<long[]> LONG_ARRAY_CODEC = Codec.of(
+            new Encoder<>() {
+                @Override
+                public <T> DataResult<T> encode(long[] input, DynamicOps<T> ops, T prefix) {
+                    return DataResult.success(ops.createLongList(Arrays.stream(input)));
+                }
+            },
+            new Decoder<>() {
+                @Override
+                public <T> DataResult<Pair<long[], T>> decode(DynamicOps<T> ops, T input) {
+                    DataResult<LongStream> dataResult = ops.getLongStream(input);
+
+                    if (dataResult.isSuccess()) {
+                        return DataResult.success(Pair.of(dataResult.getOrThrow().toArray(), ops.empty()));
+                    }
+                    else {
+                        return DataResult.error(() -> dataResult.error().orElseThrow().message());
+                    }
+                }
             }
     );
 

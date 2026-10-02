@@ -33,6 +33,7 @@ public record ChunkCanvasData(
                             new ParallelListMapCodec<>(
                                     BlockPos.CODEC,
                                     QuadInstance.CODEC.listOf().xmap(list -> (List<QuadInstance>) new ArrayList<>(list), List::copyOf),
+                                    HashMap::new,
                                     false
                             ).fieldOf("blocks").forGetter(ChunkCanvasData::blocks)
                     ).apply(instance, ChunkCanvasData::new)
