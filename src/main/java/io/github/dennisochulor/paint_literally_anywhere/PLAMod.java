@@ -20,6 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class PLAMod implements ModInitializer {
     public static final String MOD_ID = "paint_literally_anywhere";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -53,11 +56,26 @@ public class PLAMod implements ModInitializer {
                 result = ShapeFileParser.parse(server.getServerDirectory());
                 ShapeUtil.setParseResult(result);
 
-                StringBuilder sb = new StringBuilder();
-                result.missingNamespaces(true).keySet().forEach(namespace -> sb.append(namespace).append(", "));
-                if (!sb.isEmpty()) {
-                    LOGGER.warn("[PLA] Dedicated server is missing accurate shapes for the namespaces (either due to missing or outdated shape files): {}\n" +
-                            "See https://modrinth.com/project/paint-literally-anywhere#:~:text=Important%20note%20for%20Dedicated%20Servers for more info.", sb);
+                StringBuilder sb = new StringBuilder("\n[Paint Literally Anywhere (PLA)]\n");
+                Set<String> missingShapeFiles = result.missingNamespaces(false).keySet();
+                Set<String> maybeOutdatedShapeFiles = new HashSet<>(result.missingNamespaces(true).keySet());
+                maybeOutdatedShapeFiles.removeAll(missingShapeFiles);
+
+                boolean shouldLog = !missingShapeFiles.isEmpty() || !maybeOutdatedShapeFiles.isEmpty();
+                if (!missingShapeFiles.isEmpty()) {
+                    sb.append("Missing shape files: ");
+                    missingShapeFiles.forEach(namespace -> sb.append(namespace).append(", "));
+                    sb.append("\n");
+                }
+                if (!maybeOutdatedShapeFiles.isEmpty()) {
+                    sb.append("Potentially outdated shape files: ");
+                    maybeOutdatedShapeFiles.forEach(namespace -> sb.append(namespace).append(", "));
+                    sb.append("\n");
+                }
+
+                if (shouldLog) {
+                    sb.append("See https://modrinth.com/mod/paint-literally-anywhere#:~:text=Important%20note%20for%20Dedicated%20Servers for more info.\n");
+                    LOGGER.warn(sb.toString());
                 }
             }
             else { // we have a client, so parsing/generating was already done during model baking
